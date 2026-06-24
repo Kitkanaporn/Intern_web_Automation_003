@@ -1,0 +1,33 @@
+# ── Files (path สัมพัทธ์จาก root folder นี้) ─────────────────
+files:
+  service_map:    "Map_User_Email.xlsx"      # sheet: "map" | Group / Group Mail / Member / Member Mail
+  email_template: "Promote_Template_Email.html"  # ไม่ต้องเปลี่ยน ถ้าใช้ template เดิม
+
+# ── Recipient matching ─────────────────────────────────────────
+recipient_matching:
+  method:           "prefix"
+  prefix_min_chars: 10
+  case_sensitive:   false
+
+# ── Jira comment ──────────────────────────────────────────────
+jira_comment:
+  text: "Promote Notification Complete"
+
+# ── Schedule ──────────────────────────────────────────────────
+schedule:
+  run_time: ""   # เวลาที่รันทุกวัน (HH:MM) เช่น 16:15
+
+# --- Identity information --------------------------------------
+email :
+  # sender_email: ""    #email ของผู้ส่ง (ต้องเป็น email ขององค์กรเท่านั้น) — Claude จะถามและกรอกให้อัตโนมัติ
+  # sender_name:  ""    #ชื่อของผู้ส่ง
+  # sender_phone: ""    #เบอร์โทรศัพท์ของผู้ส่ง หรือ องค์กร
+  # sender_dept:  "Depository & Registrar Systems Dept."
+  # sender_org:   "The Stock Exchange of Thailand"
+
+  # Draft จะส่งถึง email นี้เท่านั้น เพื่อตรวจสอบก่อน Forward
+  draft_to: ""
+
+  # Email เหล่านี้จะไม่ถูกรวมในรายชื่อผู้รับจริง
+  exclude_recipients:
+    - ""

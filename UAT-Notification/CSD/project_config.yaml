@@ -1,0 +1,39 @@
+# =============================================================
+#  UAT Notification — Project Config: CSD
+#  ข้อมูลเฉพาะ project นี้ — ใช้ร่วมกับ shared_config.yaml
+#  ที่อยู่ใน root folder ด้านนอก
+# =============================================================
+
+# ── Jira ──────────────────────────────────────────────────────
+jira:
+  cloud_id:    "6732a23f-023f-4a4c-aa5c-ccfee2562f20"
+  base_url:    "https://setth.atlassian.net"
+  project_key: "CSD"
+
+  fields:
+    uat_start:        "customfield_10876"   # UAT Start Date
+    uat_end:          "customfield_10877"   # UAT End Date
+    promote_date:     "customfield_10854"   # Promote Date (Tentative Live Date)
+    workflow_task_id: "customfield_10653"   # IT Workflow Task ID
+    # หมายเหตุ: ไม่มี notification field — ใช้ Jira comment แทน (ดู shared_config.yaml → jira_comment.text)
+
+  # Service fields → map ไปหา Group ใน Excel อัตโนมัติ
+  # ระบบดึง display name จาก Jira API (expand=names) แล้ว match กับคอลัมน์ Group ใน Excel โดยตรง
+  service_fields:
+    - jira_field:   "customfield_19036"   # Account Services Unit
+      table_column: "Account service"
+
+    - jira_field:   "customfield_19037"   # Counter Services Unit
+      table_column: "Counter Service"
+
+    - jira_field:   "customfield_19039"   # Issuer Services Unit
+      table_column: "Issuer Service"
+
+    - jira_field:   "customfield_19040"   # Investor Services Unit
+      table_column: "Investor Service"
+
+    - jira_field:   "customfield_19041"   # CA Service Unit
+      table_column: "CA Service"
+
+    - jira_field:   "customfield_19042"   # Distribution Unit
+      table_column: "Distribution Service"

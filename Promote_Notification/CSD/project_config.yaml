@@ -1,0 +1,29 @@
+jira:
+  cloud_id:    "6732a23f-023f-4a4c-aa5c-ccfee2562f20"
+  base_url:    "https://setth.atlassian.net"
+  project_key: "CSD"
+  
+  fields :
+    workflow_task_id : "customfield_10653"   # IT Workflow Task ID
+    promote_date : "customfield_10854"   # Promote Date (Tentative Live Date)
+
+    promote_window_days :   # จำนวนวันที่จะแจ้งเตือนก่อนวันโปรโมท #default = 3
+    
+    service_fields:
+    - jira_field:   "customfield_19036"   # Account Services Unit
+      table_column: "Account service"
+
+    - jira_field:   "customfield_19037"   # Counter Services Unit
+      table_column: "Counter Service"
+
+    - jira_field:   "customfield_19039"   # Issuer Services Unit
+      table_column: "Issuer Service"
+
+    - jira_field:   "customfield_19040"   # Investor Services Unit
+      table_column: "Investor Service"
+
+    - jira_field:   "customfield_19041"   # CA Service Unit
+      table_column: "CA Service"
+
+    - jira_field:   "customfield_19042"   # Distribution Unit
+      table_column: "Distribution Service"

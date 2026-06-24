@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Promote Email Template</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #000; background: #f0f0f0; margin: 0; padding: 24px; }
+  .email-container { max-width: 860px; margin: 0 auto; background: #fff; border: 1px solid #ccc; }
+
+  .email-meta { background: #ffffff; border-bottom: 1px solid #ddd; padding: 14px 20px; }
+  .email-meta-row { display: flex; gap: 10px; margin-bottom: 5px; font-size: 12px; /*border: 1px solid #ffffff*/; padding-bottom: 4px; }
+  .email-meta-label { color: #666; min-width: 60px; font-weight: bold; }
+  .email-subject-line { font-size: 15px; font-weight: bold; margin-top: 10px; color: #000; /*text-align: center;*/ }
+
+  .email-sent-department { font-size: 12px; color: #666; margin-top: 4px; border: 1px solid #d3d3d3; padding-top: 4px; padding-bottom: 4px; padding-left: 8px; padding-right: 8px; margin-left: 20px; margin-right: 20px; text-align: left; }
+
+  .email-body { padding: 24px 28px; line-height: 1.8; }
+  .email-body p { margin: 0 0 4px 0; }
+
+  .promote-table { border-collapse: collapse; width: 100%; font-size: 11px; margin: 12px 0; color: #4783bc; }
+  .promote-table td { border: none ; padding: 6px 8px; vertical-align: middle; }
+  .promote-table td.col-dept { width: 5%; text-align: center; color: #1F4E79; font-weight: bold; }
+  .promote-table td.col-task { width: 15%; text-align: center; color: #1F4E79; font-weight: bold; }
+  .promote-table td.col-detail { width: 80%; text-align: left; }
+
+  .signature { border : none ; margin-top: 20px; padding-top: 6px; font-size: 12px; color: #333; line-height: 1.7; }
+
+  .placeholder { font-style: italic; font-weight: bold ; font-size: 12px; }
+
+</style>
+</head>
+<body>
+
+<div class="email-container">
+
+  <div class="email-meta">
+    <div class="email-subject-line">
+      <span>แจ้ง Promote ระบบ CSD/Subscription Version </span>
+      <span class = "placeholder">{{VERSION}}</span> 
+      <span>วันที่ </span>
+      <span class="placeholder">{{วัน/วันที่/เดือน/ปี}}</span>
+    </div>
+  </div>
+  <br>
+  <div class ="email-sent-department">
+    <span class="placeholder">{{email of department}}</span>
+  </div>
+  
+  <div class="email-body">
+
+    <p>เรียน &nbsp;&nbsp;&nbsp; ผู้เกี่ยวข้องทุกท่าน</p>
+    <br>
+    <p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ทาง CSD ได้มีการ Promote ระบบ CSD/Subscription Version 
+      <span class="placeholder">{{VERSION}}</span> ในวันที่ 
+      <strong><span class="placeholder">{{วัน/วันที่/เดือน/ปี}}</span></strong></p>
+    <p>ทั้งนี้รายละเอียดที่ Promote มีดังนี้</p>
+    <br>
+
+    <table class="promote-table">
+      <tbody>
+        <tr>
+          <td class="col-dept"><span class="placeholder">{{ตัวย่อแผนก}}</span></td>
+          <td class="col-task"><span class="placeholder">{{Task Workflow ID}}</span></td>
+          <td class="col-detail"><span class="placeholder">{{รายละเอียดงาน (ชื่อ task)}}</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <br>
+    <p>ขอบคุณค่ะ</p>
+    <p>PTITeam</p>
+    <br>
+    <hr style="border: none; border-top: 1px solid #ccc;">
+    <div class="signature">
+      <p>
+        " The information transmitted herein may contain 
+        privileged or confidential information which is intended 
+        only for the use of the recipient(s) named above. If you have 
+        received this message in error, please notify the sender immediately 
+        by reply transmission and delete it from your system and destroy any printed copies. 
+        Any analyses, opinions or conclusions contained herein are not intended to and shall not 
+        create any binding effect to the Stock Exchange of Thailand, its subsidiaries and its affiliates 
+        unless the context expressly describes otherwise. E-mail transmissions cannot be guaranteed to be secure 
+        or error-free as information could be intercepted, corrupted, lost, destroyed, arrive late or incomplete, 
+        or contain viruses. All liability arising from or in connection with corrupted e-mails or viruses 
+        transmitted by this e-mail is excluded to the fullest extent permitted by law "
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!--
+=== PLACEHOLDER REFERENCE ===
+
+{{SENDER_EMAIL}}         — email ผู้ส่ง
+{{SENDER_NAME}}          — ชื่อผู้ส่ง
+{{RECIPIENT_EMAIL}}      — email ผู้รับ
+{{CC_EMAILS}}            — email สำเนา
+{{วัน/วันที่/เดือน/ปี}} — วันที่ Promote เช่น วันศุกร์ที่ 27 มิถุนายน 2568
+
+ต่อแถวใน Promote Table:
+{{ตัวย่อแผนก}}           — ตัวย่อชื่อแผนก เช่น CSD
+{{Task Workflow ID}}     — รหัส Workflow เช่น WF-12345
+{{รายละเอียดงาน (ชื่อ task)}} — ชื่อ task ที่ Promote
+-->
+
+</body>
+</html>
