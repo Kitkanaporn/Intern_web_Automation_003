@@ -10,8 +10,6 @@ project_config.yaml — config เฉพาะ project
 Map_User_Email.xlsx — รายชื่อและ email ผู้รับ
 Promote_Template_Email.html — template email
 
-โดยเมื่อสร้าง prompt ต้องส่ง 6 ไฟล์นี้ไปด้วย
-
 เมื่อถูก invoke ให้ทำตามขั้นตอนนี้ทันที:
 
 
