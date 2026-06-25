@@ -14,7 +14,6 @@ Promote_Template_Email.html — template email
 
 เมื่อถูก invoke ให้ทำตามขั้นตอนนี้ทันที:
 
-
 อ่าน AGENT.md และ SKILL.md ให้เข้าใจครบก่อน
 อ่าน shared_config.yaml และ project_config.yaml
 รัน Phase ตามลำดับใน SKILL.md โดยไม่ต้องรอคำสั่งเพิ่มเติม

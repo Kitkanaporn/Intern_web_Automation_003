@@ -56,7 +56,7 @@
 ## ผลลัพธ์ต่อการรัน
 
 - **Summary Table** — แสดงทุก Epic ใน window พร้อมสถานะ (🟡 ยังไม่แจ้ง / ✓ แจ้งแล้ว)
-- **Email Card** — หัวข้อ + เนื้อหา พร้อมกรอบ To / CC และปุ่ม Copy แยกตาม Promote Date
+- **Email Card** — หัวข้อ + เนื้อหา พร้อมกรอบ To / CC และปุ่ม Copy แยกตาม Promote Date ไม่ได้ทำออกมาเป็นไฟล์ แต่จะแสดงบนหน้าของ claude เพื่อง่ายในการทำงาน
 - **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (ต้อง confirm ก่อน)
 - **สรุปผล** — แสดงจำนวน ticket ที่แจ้งแล้วท้าย card เสมอ
 

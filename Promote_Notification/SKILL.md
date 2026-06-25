@@ -10,7 +10,7 @@
 2. ต้องดึงข้อมูลใหม่จาก Jira ก่อนรันทุกครั้ง — ห้ามใช้ข้อมูล ticket จาก session ก่อน
 3. ต้องอ่าน `shared_config.yaml` และ `project_config.yaml` ก่อนรันทุกครั้ง
 4. ห้ามแก้ไขไฟล์ใดๆ ในโฟลเดอร์นี้โดยไม่ได้รับอนุญาตจากผู้ดูแลระบบ
-5. ห้ามสร้างโครงสร้าง HTML ขึ้นมาใหม่เอง — ต้องอ่าน `Promote_Template_Email.html` ทุกครั้ง และ replace placeholder เท่านั้น
+5. ห้ามสร้างโครงสร้าง HTML ขึ้นมาใหม่เอง — ต้องอ่าน `Promote_Template_Email.html` ทุกครั้ง และ replace placeholder เท่านั้น โดยเอา template มาใช้เลย
 6. ห้ามใช้รายชื่อ/email จาก session ก่อน — ต้องอ่าน `Map_User_Email.xlsx` ใหม่ทุกครั้ง
 7. Output บนหน้าจอ Claude เท่านั้น — ไม่สร้างไฟล์
 8. ต้องแยก card หากจับ Promote Date ได้ต่างวันกัน
@@ -223,11 +223,7 @@ promote_date → [ { epic_key, workflow_task_id, summary } ]
 
 สำหรับแต่ละ Epic ที่ได้จาก Phase 1:
 
-1. ตรวจ comment ว่ามีข้อความ `"Promote Notification Complete"` ไหม (case-insensitive)
-   - **มี** → สถานะ `NOTIFIED` (แถวสีขาว)
-   - **ไม่มี** → สถานะ `UNNOTIFIED` (แถวสีเหลือง)
-
-2. แสดง **Summary Table** ก่อนดำเนินการต่อ:
+1. แสดง **Summary Table** ก่อนดำเนินการต่อ:
 
    | Epic | Workflow Task ID | Promote Date | สถานะ |
    |---|---|---|---|
@@ -253,10 +249,9 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 สำหรับแต่ละ Epic ใน window (รวมทั้ง NOTIFIED):
 
-1. ดึงค่าจาก `service_fields` ทุกตัวใน `project_config.yaml`
+1. ดึงค่าจาก `service_fields` ทุกตัวใน `project_config.yaml` โดยต้องการแบ่งออกมาตามวันที่ promote เพราะไม่ได้ส่งเหมือนกันหากต้องส่งมากกว่า 1 card
 2. Match display name ของแต่ละ field กับคอลัมน์ `Group` ใน Excel (case-insensitive)
 3. ผลลัพธ์ต่อ Group ที่ match:
-   - **To** = Member Mail ทุกคนในกลุ่มนั้น
    - **CC** = Group Mail ของกลุ่มนั้น (คั่นด้วย `;`)
 4. รวม recipient จากทุก Epic และทุก service field แล้ว **deduplicate**
 5. ลบ email ที่อยู่ใน `exclude_recipients` ออกทุกครั้ง
@@ -316,7 +311,7 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 ประกอบด้วย:
 
-1. **กรอบ CC** — Group Mail รวม (deduplicated, คั่นด้วย `;`) ทำออกมาเป็น กรอบ สีเขียว
+1. **กรอบ CC** — Group Mail รวม (deduplicated, คั่นด้วย `;`) ทำออกมาเป็น กรอบ สีเขียว พร้อมปุ่ม copy
 2. **เนื้อ email** — render จาก `Promote_Template_Email.html` โดยแทน placeholder:
 
 **Claude ใส่ให้อัตโนมัติ:**
