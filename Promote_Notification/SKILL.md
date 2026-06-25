@@ -342,7 +342,7 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 ## PHASE 5 — Post Comment บน Jira
 
-> เฉพาะ UNNOTIFIED tickets เท่านั้น
+> เฉพาะ ticket ที่ไม่มีการคอมเมนต์ว่า "Promote Notification Complet"
 
 1. แสดงรายชื่อ ticket ที่จะ post comment ก่อน:
    ```
@@ -350,9 +350,8 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
    - CSD-XXXX: {ชื่อ Epic}
    - CSD-YYYY: {ชื่อ Epic}
    ```
-2. **ขอ confirm จากผู้ใช้ก่อนทุกครั้ง** — "ยืนยันไหม? (ใช่/ไม่)"
-3. หลัง confirm → post comment `"Promote Notification Complete"` บนแต่ละ ticket
-4. แสดง checklist หลัง post:
+2. → post comment `"Promote Notification Complete"` บนแต่ละ ticket
+3. แสดง checklist หลัง post:
    ```
    ✓ CSD-XXXX — comment แล้ว
    ✓ CSD-YYYY — comment แล้ว
@@ -360,7 +359,6 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 **Edge cases:**
 - post ล้มเหลว ticket ใด → แจ้ง "✗ CSD-XXXX — ล้มเหลว ({เหตุผล})" แต่รัน ticket อื่นต่อ
-- ผู้ใช้ตอบ "ไม่" → หยุด Phase 5 แต่ card ที่แสดงไว้ยังใช้ได้ตามปกติ
 
 ---
 

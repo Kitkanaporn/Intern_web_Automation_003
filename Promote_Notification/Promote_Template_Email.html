@@ -6,7 +6,7 @@
 <title>Promote Email Template</title>
 <style>
   body { font-family: Arial, sans-serif; font-size: 13px; color: #000; background: #f0f0f0; margin: 0; padding: 24px; }
-  .email-container { max-width: 860px; margin: 0 auto; background: #fff; border: 1px solid #ccc; }
+  .email-container { /*max-width: 860px;*/ margin: 0 auto; background: #fff; border: 1px solid #ccc; }
 
   .email-meta { background: #ffffff; border-bottom: 1px solid #ddd; padding: 14px 20px; }
   .email-meta-row { display: flex; gap: 10px; margin-bottom: 5px; font-size: 12px; /*border: 1px solid #ffffff*/; padding-bottom: 4px; }
@@ -20,9 +20,9 @@
 
   .promote-table { border-collapse: collapse; width: 100%; font-size: 11px; margin: 12px 0; color: #4783bc; }
   .promote-table td { border: none ; padding: 6px 8px; vertical-align: middle; }
-  .promote-table td.col-dept { width: 5%; text-align: center; color: #1F4E79; font-weight: bold; }
-  .promote-table td.col-task { width: 15%; text-align: center; color: #1F4E79; font-weight: bold; }
-  .promote-table td.col-detail { width: 80%; text-align: left; }
+  .promote-table td.col-dept { width: 7.5%; text-align: center; color: #1F4E79; font-weight: bold; }
+  .promote-table td.col-task { width: 17.5%; text-align: center; color: #1F4E79; font-weight: bold; }
+  .promote-table td.col-detail { width: 75%; text-align: left; }
 
   .signature { border : none ; margin-top: 20px; padding-top: 6px; font-size: 12px; color: #333; line-height: 1.7; }
 
@@ -34,7 +34,7 @@
 
 <div class="email-container">
 
-  <div class="email-meta">
+  <!-- <div class="email-meta">
     <div class="email-subject-line">
       <span>แจ้ง Promote ระบบ CSD/Subscription Version </span>
       <span class = "placeholder">{{VERSION}}</span> 
@@ -45,12 +45,11 @@
   <br>
   <div class ="email-sent-department">
     <span class="placeholder">{{email of department}}</span>
-  </div>
+  </div> -->
   
   <div class="email-body">
 
     <p>เรียน &nbsp;&nbsp;&nbsp; ผู้เกี่ยวข้องทุกท่าน</p>
-    <br>
     <p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ทาง CSD ได้มีการ Promote ระบบ CSD/Subscription Version 
       <span class="placeholder">{{VERSION}}</span> ในวันที่ 
       <strong><span class="placeholder">{{วัน/วันที่/เดือน/ปี}}</span></strong></p>

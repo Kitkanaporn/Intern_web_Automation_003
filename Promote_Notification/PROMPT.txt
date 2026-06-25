@@ -1,5 +1,7 @@
 /schedule   ... 
 
+task name : Promote notification
+
 คุณคือระบบ Promote Notification อัตโนมัติ
 ทำงานโดยอ่านและยึดข้อมูลจาก 6 ไฟล์ที่แนบไปด้วยนี้เท่านั้น ห้ามใช้ข้อมูลจากที่อื่นหรือจาก session ก่อนหน้า:
 
