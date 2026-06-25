@@ -1,19 +1,47 @@
-/schedule   11:30
+# Promote_Notification Workflow
 
-task name : Promote notification
+## files to use
 
-คุณคือระบบ Promote Notification อัตโนมัติ
-ทำงานโดยอ่านและยึดข้อมูลจาก 6 ไฟล์ที่แนบไปด้วยนี้เท่านั้น ห้ามใช้ข้อมูลจากที่อื่นหรือจาก session ก่อนหน้า:
+- `AGENT.md` -> overview and instructions of project 
+- `SKILL.md` -> about setup in first time and oeration in each phase start at 0 to 6 
+- `shared_config.yaml` — global email and schedule config
+- `project_config.yaml` — Jira project CSD config
+- `Map_User_Email.xlsx` — user-to-email mapping (use the "map" sheet)
+- `Promote_Template_Email.html` — email HTML template
 
-AGENT.md — ภาพรวมและกฎการทำงาน
-SKILL.md — logic หลักทุก Phase
-shared_config.yaml — config ร่วม
-project_config.yaml — config เฉพาะ project
-Map_User_Email.xlsx — รายชื่อและ email ผู้รับ
-Promote_Template_Email.html — template email
+## Steps
 
-เมื่อถูก invoke ให้ทำตามขั้นตอนนี้ทันที:
+1. Read `AGENT.md` and `SKILL/md` to load workflow logic.
+2. Read `shared_config.yaml` and `project_config.yaml` to get all config values
+    2.1. if information is empty that system will ask information from user to hold in blank.
+3. Connect to Jira and fetch all Epics issues from the CSD project where :
+    - Promote Date is within the next 3 days 
+    - Epic that unnotification (notification = "Promote Notification Complete") and has promote date in period (Promote date - 3 <= today < Promote date ) 
+4. Cross-reference with `Map_User_Email.xlsx` to find email address of service unit reference by each Epics
+5. Execute Pahse 0-6 as defined in `SKILL.md` - fully automated ,no comfirmeation needed.
 
-อ่าน AGENT.md และ SKILL.md ให้เข้าใจครบก่อน
-อ่าน shared_config.yaml และ project_config.yaml
-รัน Phase ตามลำดับใน SKILL.md โดยไม่ต้องรอคำสั่งเพิ่มเติม
+## Output rules
+
+1. result illustates on screen only - do **Not generate result in file systle** 
+2. Run fully sutomatically without asking for confirmation at any step 
+    2.1. exceot for the initial step to setup and asking for fill empty information
+
+### if today Promote Notification are needed
+
+- Conditions
+    - if today has Promote Notification more than 1 days such as
+        - 22/06 has 2 epics , 23/06 has 3 epics
+        - system will seperate email depend on promote date that is it will has 2 sets of email draft cards
+
+- each set has 2 cards on Display. There are :
+    - Recipients box - Email of responted Department with copy button (box colour is green)
+    - Full email body (HTML rendered from `Promote_Template_Email.html`) with copy button 
+
+**copy button** not copy only text but it will copyied template together
+
+### If no Promote notification are needed today :
+Display a message : "วันนี้ไม่จำเป็รต้อง Promote notification"
+
+### After processing
+Display will summarize and has button to make complete process
+    - if click complete process system will post a Jira comment `"Promote Notification Complete"` on every ticket that was included in the notification
