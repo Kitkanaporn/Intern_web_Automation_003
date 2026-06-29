@@ -25,11 +25,13 @@ Daily UAT reminder workflow. Runs automatically every day at the time set in sha
 **โครงสร้างไฟล์:**
 ```
 📁 UAT-Notification/         ← root folder
+├── SKILL.md
 ├── shared_config.yaml       ← config ร่วม (email, files, schedule)
 ├── Map_User_Email.xlsx
 ├── UAT_Template_Email.html
-├── SKILL.md
-├── AGENT.md
+├── 📁 instructions/
+│   ├── AGENT.md
+│   └── SETUP.md             ← First-time Setup (Phase 0C)
 ├── 📁 CSD/
 │   └── project_config.yaml  ← config เฉพาะ project (jira fields)
 └── 📁 ProjectB/
@@ -58,104 +60,7 @@ Daily UAT reminder workflow. Runs automatically every day at the time set in sha
 
 **ถ้า config ครบแล้ว** → ข้ามไป Phase 1 ทันที
 
-**ถ้า config ยังว่างอยู่** → ทำ Phase 0C (First-time Setup)
-
-### 0C — First-time Setup (รันครั้งแรกเท่านั้น)
-
-**หลักการ: Claude ดึงข้อมูลจาก Jira เองให้มากที่สุด — ถามผู้ใช้เฉพาะสิ่งที่ Claude ไม่มีทางรู้**
-
----
-
-#### ส่วน A — Shared Config (ถาม — Claude ไม่รู้ข้อมูลส่วนตัว)
-
-ถามครั้งเดียว ใช้ได้ทุก project → บันทึกลง `shared_config.yaml` ทันที:
-```
-1. Gmail ของผู้ส่ง (ที่เชื่อมกับ Gmail MCP): ___
-2. ชื่อผู้ส่ง: ___
-3. เบอร์โทรศัพท์: ___
-4. Email ที่ draft จะส่งถึง (เพื่อตรวจสอบก่อน Forward): ___
-5. เวลาที่ต้องการให้รันทุกวัน (HH:MM เช่น 16:15): ___
-```
-*(ฝ่าย/แผนก และ องค์กร ตั้งค่าไว้ถาวรแล้วใน shared_config.yaml — ไม่ต้องถาม)*
-
----
-
-#### ส่วน B — Project Config (AUTO-DETECT จาก Jira API)
-
-**B1 — Auto-detect Jira site (cloud_id + base_url)**
-
-เรียก `getAccessibleAtlassianResources`:
-- ถ้ามี site เดียว → ใช้อัตโนมัติ ไม่ถาม
-- ถ้ามีหลาย site → แสดงรายการให้เลือก 1 site
-
-บันทึก `cloud_id` และ `base_url` ทันที
-
----
-
-**B2 — เลือก project (1 ครั้ง = 1 space)**
-
-เรียก `getVisibleJiraProjects` → ได้รายการ projects ทั้งหมดที่เข้าถึงได้
-
-**ถ้ามี project เดียว** → ใช้อัตโนมัติ ไม่ถาม ดำเนินการ B3 ทันที
-
-**ถ้ามีหลาย project** → แสดงรายการให้เลือก 1 project:
-```
-พบ {N} projects — กรุณาพิมพ์หมายเลขที่ต้องการตั้งค่า:
-1. CSD — DRS-CSD
-2. ABC — Project ABC
-...
-```
-
-- รับคำตอบ → ได้ project key 1 ตัว
-- สร้างโฟลเดอร์ `{project_key}/` พร้อม `project_config.yaml`
-- ดำเนินการ B3–B5 สำหรับ project นี้
-
-> ต้องการตั้งค่า space อื่น → รันใหม่อีกครั้ง เลือก project อื่น
-
----
-
-**B3 — Auto-detect UAT fields**
-
-เรียก `searchJiraIssuesUsingJql`:
-- jql: `project = "{project_key}" AND issuetype = Epic ORDER BY created DESC`
-- fields: `["*all"]`, expand: `"names"`
-- maxResults: 3
-
-วิเคราะห์ `names` จาก response:
-- หา fields ที่ชื่อมีคำว่า **"UAT"** → เรียงตามชื่อ (Start ก่อน End)
-  - ถ้าหาเจอทั้งคู่ → บันทึก `uat_start` / `uat_end` อัตโนมัติ ไม่ถาม
-  - ถ้าหาได้แค่บางส่วน → แสดง date fields ทั้งหมดให้ user ระบุ
-- หา fields ที่ชื่อมีคำว่า **"Workflow"** หรือ **"Task ID"** → บันทึก `workflow_task_id` อัตโนมัติ
-  - ถ้าหาไม่เจอ → แสดง fields ที่เกี่ยวข้องให้ user เลือก
-
----
-
-**B4 — Auto-detect service fields**
-
-จาก `names` response เดิม:
-1. กรองหา fields ที่ชื่อลงท้ายด้วย **"Unit"** หรือ **"Services"** หรือ **"Service"**
-2. อ่าน Excel `Map_User_Email.xlsx` sheet `map` คอลัมน์ `Group`
-3. Match field display name กับ Excel Group (case-insensitive) → ได้ service field list
-4. สร้าง proposed `table_column` โดย: ตัด "Unit" suffix + trim (เช่น "Account Services Unit" → "Account service")
-5. แสดง proposed mapping ให้ user ยืนยัน/แก้ table_column names:
-
-```
-[{project_key}] พบ Service fields อัตโนมัติ — ยืนยัน/แก้ชื่อคอลัมน์ในตาราง UAT email:
-  customfield_19036 (Account Services Unit)  → "Account service"  [Enter = ใช้เลย / พิมพ์ชื่อใหม่]
-  customfield_19037 (Counter Services Unit)  → "Counter Service"
-  ...
-```
-
-บันทึก service_fields ทันทีหลัง user ยืนยัน
-
----
-
-**B5 — เขียน project_config.yaml**
-
-เขียนลงไฟล์ `{project_key}/project_config.yaml` แล้วแจ้ง:
-> ✅ ตั้งค่า {project_key} เสร็จแล้ว — พร้อมใช้งานทันที
-
-จากนั้นดำเนินการต่อ Phase 1 โดยไม่ต้องถามซ้ำอีก
+**ถ้า config ยังว่างอยู่** → อ่านไฟล์ `instructions/SETUP.md` แล้วทำตามขั้นตอนในนั้น
 
 ---
 
@@ -181,10 +86,18 @@ field_display_names = {
 ```
 ใช้ใน Phase 2 สำหรับ auto-match กับ Excel Group column
 
-**Step 1B — ตรวจสอบ comment ต่อ ticket:**
-สำหรับแต่ละ ticket ที่ได้จาก JQL → ใช้ `getJiraIssue` ดึง `comment` field:
-- ถ้ามี comment ที่ body ประกอบด้วยข้อความจาก config `jira_comment.text` (เช่น "UAT Notification Complete") → **notified**
-- ถ้าไม่มี comment ดังกล่าว → **unnotified**
+**Step 1B — ตรวจสอบ comment ต่อ ticket (เช็คทั้งเนื้อหา + วันที่):**
+สำหรับแต่ละ ticket ที่ได้จาก JQL → ใช้ `getJiraIssue` ดึง `comment` field แล้วตรวจสอบ **ทั้งเนื้อหาและวันที่สร้าง**:
+
+- ถ้ามี comment ที่:
+  1. body ประกอบด้วยข้อความจาก config `jira_comment.text` **และ**
+  2. comment นั้นถูกสร้าง**วันก่อนหน้า** (created date < today)
+  → **notified**
+
+- ถ้าไม่มี comment ดังกล่าว **หรือ** มี comment แต่ถูกสร้าง**วันนี้** (created date = today)
+  → **unnotified**
+
+> **เหตุผล:** ถ้า comment ถูกสร้างวันนี้ ยังถือว่า unnotified — ทำให้รีรันในวันเดิมได้และทุกคนในทีมเห็นสถานะเดียวกัน
 
 **ถ้าทุก ticket เป็น notified** → output:
 > ✅ ไม่มี ticket ที่ต้องส่ง email แจ้งเตือนเพิ่ม — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})

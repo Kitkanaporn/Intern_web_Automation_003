@@ -10,9 +10,9 @@
 
 เมื่อผู้ใช้ขอให้รัน UAT Notification:
 
-1. อ่าน `SKILL.md` ในโฟลเดอร์นี้
+1. อ่าน `SKILL.md` ใน root folder
 2. อ่าน `shared_config.yaml` + เลือก project subfolder → อ่าน `{project}/project_config.yaml`
-3. ถ้าค่าใดว่าง → ทำ First-time Setup (Phase 0C)
+3. ถ้าค่าใดว่าง → อ่าน `instructions/SETUP.md` แล้วทำ First-time Setup
 4. ดำเนินการตาม Phase 1–5 โดยไม่ต้องถาม
 
 **ห้ามถาม ไม่ต้องยืนยัน — ทุกอย่างทำอัตโนมัติ**
@@ -23,15 +23,15 @@
 
 ```
 📁 UAT-Notification/             ← root folder (ชี้ Cowork มาที่นี่)
-├── AGENT.md                     ← ไฟล์นี้
 ├── SKILL.md                     ← logic หลัก (Phase 0–5)
 ├── shared_config.yaml           ← email, schedule, files — ใช้ร่วมทุก project
 ├── Map_User_Email.xlsx          ← รายชื่อ member + email
 ├── UAT_Template_Email.html      ← template email
-│
+├── 📁 instructions/
+│   ├── AGENT.md                 ← ไฟล์นี้
+│   └── SETUP.md                 ← First-time Setup (Phase 0C)
 ├── 📁 CSD/                      ← project แรก
 │   └── project_config.yaml     ← jira fields เฉพาะ CSD
-│
 └── 📁 [ProjectB]/               ← เพิ่ม project ใหม่ได้เลย
     └── project_config.yaml     ← copy จาก CSD แล้วแก้ค่า
 ```
