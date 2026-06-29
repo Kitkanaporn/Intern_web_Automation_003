@@ -2,17 +2,17 @@
 
 ## Files to use
 
-- `AGENT.md` — workflow overview and instructions
+- `instructions/AGENT.md` — workflow overview and instructions
 - `SKILL.md` — core logic Phase 0–5
 - `shared_config.yaml` — global email and schedule config
-- `project_config.yaml` — Jira project CSD config
+- `{project_key}/project_config.yaml` — Jira project config (e.g. `CSD/project_config.yaml`)
 - `Map_User_Email.xlsx` — user-to-email mapping (use the "map" sheet)
 - `UAT_Template_Email.html` — email HTML template
 
 ## Steps
 
-1. Read `AGENT.md` and `SKILL.md` to load workflow logic.
-2. Read `shared_config.yaml` and `project_config.yaml` to get all config values.
+1. Read `instructions/AGENT.md` and `SKILL.md` to load workflow logic.
+2. Read `shared_config.yaml` and `{project_key}/project_config.yaml` to get all config values.
 3. Connect to Jira and fetch all Epic issues from the CSD project where:
    - UAT Start Date is within the next 5 days, OR
    - today falls within the UAT period (UAT Start ≤ today ≤ UAT End)
