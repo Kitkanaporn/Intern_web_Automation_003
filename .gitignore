@@ -1,1 +1,3 @@
 collect/.env 
+collect/*
+logs/*
