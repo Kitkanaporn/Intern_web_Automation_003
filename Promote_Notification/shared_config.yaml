@@ -26,7 +26,7 @@ email :
   # sender_org:   "The Stock Exchange of Thailand"
 
   # Draft จะส่งถึง email นี้เท่านั้น เพื่อตรวจสอบก่อน Forward
-  draft_to: ""
+  # draft_to: ""
 
   # Email เหล่านี้จะไม่ถูกรวมในรายชื่อผู้รับจริง
   exclude_recipients:
