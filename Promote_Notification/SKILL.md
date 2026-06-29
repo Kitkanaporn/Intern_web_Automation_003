@@ -154,8 +154,8 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 - ให้ผู้ใช้ใส่เอง — default แสดงเป็น `xxx` ไว้ก่อน ไม่ดึงจาก Epic อัตโนมัติ
 
 **วันที่ Promote:**
-- แปลง Promote Date เป็นภาษาไทย เช่น `24/06/2026` → `"วันพุธที่ 24 มิถุนายน 2026"`
-- ใช้ปีคริสตศักราช (ไม่ใช่พุทธศักราช)
+- แปลง Promote Date เป็นภาษาไทย เช่น `24/06/2026` → `"วันพุธที่ 24 มิถุนายน 2569"`
+- ใช้ปีพุทธศักราช (ค.ศ. + 543) เช่น 2026 → 2569
 
 **Edge cases:**
 - `service_fields` ว่างเปล่าใน config → แจ้ง warning ให้รัน Setup 4C ใหม่ แล้วหยุด
@@ -204,22 +204,48 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 | Placeholder | ค่าที่แทน |
 |---|---|
-| `{{วัน/วันที่/เดือน/ปี}}` | Promote Date จาก Jira — format ภาษาไทย เช่น "วันพุธที่ 24 มิถุนายน 2026" ปีคริสตศักราช |
+| `{{วัน/วันที่/เดือน/ปี}}` | Promote Date จาก Jira — format ภาษาไทย เช่น "วันพุธที่ 24 มิถุนายน 2026" **ใช้ปีพุทธศักราช** เช่น 2569 |
 | `{{email of department}}` | Group Mail รวมทุก Unit ที่ service field มีค่า คั่นด้วย `;` |
-| `{{Task Workflow ID}}` | Workflow Task ID จากทุก ticket ในวันนั้น (ทั้ง NOTIFIED + UNNOTIFIED) คั่นด้วย `,` |
-| `{{รายละเอียดงาน (ชื่อ task)}}` | ชื่อ Epic จากทุก ticket ในวันนั้น (ทั้ง NOTIFIED + UNNOTIFIED) โดยตัดส่วน `[***]` ที่อยู่หน้าชื่อออก |
 
-> **หลักการ:** รายละเอียดงานในเนื้อ email แสดงทุก ticket ที่ Promote วันเดียวกัน ไม่ว่าจะแจ้งแล้วหรือยัง — เพื่อให้ผู้รับเห็นภาพรวมงานทั้งหมดที่ promote วันนั้น
+**ตาราง Promote (สำคัญ — หลาย Epic = หลายแถว):**
+
+template มี `<tr>` แค่แถวเดียว — ถ้ามีหลาย Epic ในวันเดียวกัน ให้ **duplicate `<tr>` ให้ครบทุก Epic** (ทั้ง NOTIFIED + UNNOTIFIED) โดยแต่ละแถวประกอบด้วย:
+
+| Column | ค่า |
+|---|---|
+| `{{ตัวย่อแผนก}}` | แสดง `___` ไว้ก่อน — ผู้ใช้ใส่เองก่อน forward |
+| `{{Task Workflow ID}}` | Workflow Task ID ของ Epic นั้น (extract จาก Phase 3) |
+| `{{รายละเอียดงาน (ชื่อ task)}}` | ชื่อ Epic นั้น โดยตัดส่วน `[***]` ที่อยู่หน้าชื่อออก |
+
+ตัวอย่างกรณี 3 Epic วันเดียวกัน:
+```html
+<tr>
+  <td class="col-dept">___</td>
+  <td class="col-task">WF-10001</td>
+  <td class="col-detail">ระบบสมาชิกออนไลน์ - ปรับปรุง Login</td>
+</tr>
+<tr>
+  <td class="col-dept">___</td>
+  <td class="col-task">WF-10002</td>
+  <td class="col-detail">ระบบ Report รายวัน</td>
+</tr>
+<tr>
+  <td class="col-dept">___</td>
+  <td class="col-task">CSD-103</td>
+  <td class="col-detail">ระบบแจ้งเตือน Push Notification</td>
+</tr>
+```
 
 **ผู้ใช้ใส่เองก่อน Forward จริง:**
 
 | Placeholder | หมายเหตุ |
 |---|---|
 | `{{VERSION}}` | แสดง `xxx` ไว้ก่อน — ผู้ใช้แก้เป็นเลข version จริง |
-| `{{ตัวย่อแผนก}}` | แสดง `___` ไว้ก่อน — ผู้ใช้ใส่ตัวย่อแผนก เช่น CSD |
+| `{{ตัวย่อแผนก}}` | แสดง `___` ในทุกแถว — ผู้ใช้ใส่ตัวย่อแผนก เช่น CSD |
 
-พร้อมปุ่ม **Copy** (format ติดไปใน Outlook/Gmail ได้เลย) ให้เป็นการก๊อปปี้ HTMl และ รูปแบบออกมา สำหรับการวางบน email
-**อย่าลืม**เอาข้อความยาว ๆ มาด้วยที่ปรากฏอยู่ใน template
+> **บังคับ:** ต้องรวม signature (ข้อความ disclaimer ภาษาอังกฤษ) จาก template ทุกครั้ง — ห้ามตัดออก
+
+พร้อมปุ่ม **Copy** (format ติดไปใน Outlook ได้เลย) ให้เป็นการคัดลอก HTML พร้อม styling สำหรับวางบน email
 
 ---
 
