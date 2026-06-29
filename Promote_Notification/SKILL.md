@@ -36,6 +36,17 @@
 
 > โหลด config และข้อมูลทั้งหมดเข้าหน่วยความจำ ทำครั้งเดียวต่อการรัน
 
+**0A — Pre-flight: ตรวจสอบการเชื่อมต่อ Jira (ทำก่อนทุกอย่าง)**
+
+เรียก `getAccessibleAtlassianResources`:
+- **สำเร็จ** → ดำเนินการต่อ
+- **ล้มเหลว / ไม่มี resource** → หยุดทันที แจ้ง:
+  ```
+  ❌ เชื่อมต่อ Jira ไม่ได้ — กรุณาตรวจสอบที่ Settings → Connections → Atlassian แล้วลองใหม่อีกครั้ง
+  ```
+
+**0B — โหลดไฟล์และ config**
+
 1. อ่าน `shared_config.yaml` → เก็บ: draft_to, jira_comment text, exclude_recipients
 2. อ่าน `project_config.yaml` ทุกไฟล์ใน subfolder → เก็บ: cloud_id, project_key, customfield IDs, promote_window_days, service_fields
 3. โหลด `Map_User_Email.xlsx` sheet `map` → สร้าง lookup table:

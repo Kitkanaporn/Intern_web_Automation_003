@@ -18,6 +18,19 @@ Daily UAT reminder workflow. Runs automatically every day at the time set in sha
 
 ---
 
+## PRE-CHECK — ตรวจสอบการเชื่อมต่อก่อนเริ่มทำงาน
+
+เรียก `getAccessibleAtlassianResources` เพื่อตรวจสอบว่า Jira MCP เชื่อมต่ออยู่หรือไม่:
+
+- **เชื่อมต่อได้** → ดำเนินการต่อ Phase 0 ทันที
+- **เชื่อมต่อไม่ได้ / error** → หยุดทันที แสดงข้อความ:
+
+> ❌ ไม่สามารถเชื่อมต่อ Jira ได้ — กรุณาตรวจสอบ Settings → Connections → Atlassian แล้วรันใหม่อีกครั้ง
+
+**ห้ามดำเนินการ Phase ใดๆ ต่อจนกว่าจะเชื่อมต่อสำเร็จ**
+
+---
+
 ## PHASE 0 — Setup Check (ตรวจสอบ config ก่อนทุกรัน)
 
 ### 0A — อ่าน config 2 ระดับ
