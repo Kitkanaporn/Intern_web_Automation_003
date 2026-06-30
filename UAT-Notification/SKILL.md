@@ -38,7 +38,14 @@ Required เพิ่มเติม (hardcoded):
 - `jira.fields.uat_start`, `jira.fields.uat_end`, `jira.fields.workflow_task_id`
 - `jira.service_fields[]` — ทุก entry ต้องมี `jira_field` และ `table_column` ครบ
 
-ครบ → Phase 1 | ยังว่าง → อ่าน `instructions/SETUP.md` แล้วทำตามขั้นตอนนั้น
+**ถ้าพบ field ว่าง — แบ่งเป็น 2 กลุ่ม:**
+
+| กลุ่ม | Fields | วิธีจัดการ |
+|---|---|---|
+| **Auto-detect จาก Jira** | `jira.cloud_id`, `jira.base_url`, `jira.project_key`, `jira.fields.*` ทุกตัว, `jira.service_fields[].jira_field` | เรียก Jira API ดึงค่าอัตโนมัติโดยใช้ keyword matching เดียวกับ `instructions/SETUP.md` B3 → เขียนลง config → ดำเนินการต่อ |
+| **ต้องถามผู้ใช้** | `email.sender_email`, `email.sender_name`, `email.sender_phone` และข้อมูลส่วนตัวอื่นๆ ที่ Jira ไม่มี | อ่าน `instructions/SETUP.md` แล้วถามเฉพาะ field ที่ยังขาด |
+
+> พยายาม auto-detect ให้มากที่สุดก่อนเสมอ — ถามผู้ใช้เฉพาะสิ่งที่ Jira ไม่มีทางรู้เท่านั้น
 
 ---
 

@@ -11,7 +11,6 @@
 1. Email ของผู้ส่ง (ต้องเป็น email ขององค์กร): ___
 2. ชื่อผู้ส่ง: ___
 3. เบอร์โทรศัพท์: ___
-4. เวลาที่ต้องการให้รันทุกวัน (HH:MM เช่น 16:15): ___
 ```
 *(ฝ่าย/แผนก และ องค์กร ตั้งค่าไว้ถาวรแล้วใน shared_config.yaml — ไม่ต้องถาม)*
 
@@ -51,19 +50,24 @@
 
 ---
 
-**B3 — Auto-detect UAT fields**
+**B3 — Auto-detect Jira fields**
 
 เรียก `searchJiraIssuesUsingJql`:
 - jql: `project = "{project_key}" AND issuetype = Epic ORDER BY created DESC`
 - fields: `["*all"]`, expand: `"names"`
 - maxResults: 3
 
-วิเคราะห์ `names` จาก response:
-- หา fields ที่ชื่อมีคำว่า **"UAT"** → เรียงตามชื่อ (Start ก่อน End)
-  - ถ้าหาเจอทั้งคู่ → บันทึก `uat_start` / `uat_end` อัตโนมัติ ไม่ถาม
-  - ถ้าหาได้แค่บางส่วน → แสดง date fields ทั้งหมดให้ user ระบุ
-- หา fields ที่ชื่อมีคำว่า **"Workflow"** หรือ **"Task ID"** → บันทึก `workflow_task_id` อัตโนมัติ
-  - ถ้าหาไม่เจอ → แสดง fields ที่เกี่ยวข้องให้ user เลือก
+วิเคราะห์ `names` จาก response — ดึงทุก field ที่ match keyword ต่อไปนี้อัตโนมัติ ไม่ถาม:
+
+| field | keyword ที่ใช้ match |
+|---|---|
+| `uat_start` | ชื่อมี "UAT" และ "Start" |
+| `uat_end` | ชื่อมี "UAT" และ "End" |
+| `promote_date` | ชื่อมี "Promote" หรือ "Live" หรือ "Tentative" |
+| `workflow_task_id` | ชื่อมี "Workflow" หรือ "Task ID" |
+| `remark` | ชื่อมี "Remark" หรือ "Note" หรือ "หมายเหตุ" |
+
+ถ้า match ไม่ได้ → แสดง fields ทั้งหมดให้ user เลือกเฉพาะตัวที่หาไม่เจอ
 
 ---
 
