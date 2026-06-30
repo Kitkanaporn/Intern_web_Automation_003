@@ -4,19 +4,19 @@
 
 Use only the following files:
 
-* `AGENT.md` — overview and project instructions
+* `instructions/AGENT.md` — overview and project instructions
 * `SKILL.md` — first-time setup logic and operation phases from Phase 0 to Phase 6
 * `shared_config.yaml` — global email and schedule configuration
-* `project_config.yaml` — Jira project configuration for CSD
+* `project/project_config.yaml` — Jira project configuration
 * `Map_User_Email.xlsx` — user and email mapping file, using the `map` sheet
 * `Promote_Template_Email.html` — HTML email template
 
 ## Steps
 
-1. Read `AGENT.md` and `SKILL.md` to load the workflow logic.
-2. Read `shared_config.yaml` and `project_config.yaml` to get all configuration values.
-   2.1. If any required configuration value is empty, ask the user only for the missing setup information and save it for future runs.
-3. Connect to Jira and fetch all Epic issues from the CSD project where today is within the Promote notification window:
+1. Read `instructions/AGENT.md` and `SKILL.md` to load the workflow logic.
+2. Read `shared_config.yaml` and `project/project_config.yaml` to get all configuration values.
+   2.1. If any field tagged `#importance` is empty, run Phase Setup before proceeding.
+3. Connect to Jira and fetch all Epic issues from the configured project where today is within the Promote notification window:
    `Promote Date - 3 days <= today < Promote Date`
    Only include Epic issues that have not been notified yet. An Epic is considered notified if it already contains the Jira comment:
    `"Promote Notification Complete"`
@@ -37,14 +37,18 @@ Example:
 * 23/06 has 3 Epics
 
 The system must create 2 separate sets of email draft cards, one set for each Promote Date.
-Each set must display 2 cards:
+Each set must display 4 cards:
 
-1. Recipients Card
+1. Subject
+   * Shows subject name and copy button
+2. Recipients Card
    * Shows the email addresses of the responsible service units
    * Includes a Copy button
    * The box color should be green
-
-2. Full Email Body Card
+3. CC units
+   * Shows the email addresses in file `shared_config` in `cc_email` field
+   * Includes a Copy button
+4. Full Email Body Card
    * Shows the full rendered HTML email body from `Promote_Template_Email.html`
    * Includes a Copy button
    * The Copy button must copy the full rendered HTML content, including the email template formatting, not plain text only

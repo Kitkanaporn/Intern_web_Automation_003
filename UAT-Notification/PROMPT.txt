@@ -5,13 +5,14 @@ All config files are in the user's selected folder (UAT-Notification):
 
 instructions/AGENT.md — workflow overview and instructions
 SKILL.md — core logic Phase 0–5
-shared_config.yaml — global email and schedule config
-CSD/project_config.yaml — Jira project config
+shared_config.yaml — global email config
+project/project_config.yaml — Jira project config
 Map_User_Email.xlsx — user-to-email mapping (use the "map" sheet)
 UAT_Template_Email.html — email HTML template
+
 Steps
 Read instructions/AGENT.md and SKILL.md to load workflow logic.
-Read shared_config.yaml and CSD/project_config.yaml to get all config values.
+Read shared_config.yaml and project/project_config.yaml to get all config values.
 Connect to Jira and fetch all Epic issues from the CSD project where:
 UAT Start Date is within the next 5 days, OR
 today falls within the UAT period (UAT Start ≤ today ≤ UAT End)
@@ -29,7 +30,7 @@ Recipient box (กล่องสีเขียว) — Copy button copies emai
 CC box (กล่องสีส้ม) — Copy button copies CC addresses only (plain text)
 Email body — Copy button copies HTML body ONLY (must NOT include recipient/CC boxes)
 If no UAT notifications are needed today:
-Display a message: "ไม่จำเป็นต้องส่ง UAT notification วันนี้"
+Display a message: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})"
 
 After processing — Post Jira comment (with duplicate guard)
 For every ticket included in the notification:

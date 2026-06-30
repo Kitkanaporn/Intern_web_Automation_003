@@ -11,11 +11,11 @@
 ```
 [ทุกครั้งที่รัน]
        ↓
- Phase Setup ──── draft_to ใน shared_config มีค่าแล้วไหม? ──→ มีแล้ว → Phase 0
-       │ (ยังว่าง)
+ Phase Setup ──── มี field ที่ tag #importance ว่างอยู่ไหม? ──→ ไม่มี → Phase 0
+       │ (มีว่าง)
        ↓
   Setup 1 ตรวจ config
-  Setup 2 ถาม draft_to
+  Setup 2 ถามข้อมูลที่ auto-detect ไม่ได้
   Setup 3 Auto-detect Jira site
   Setup 4 Auto-detect Project + Fields
   Setup 5 แก้ไข config อัตโนมัติ
@@ -28,46 +28,46 @@
 
 ## Setup 1 — ตรวจสอบความครบถ้วนของ Config
 
-1. อ่าน `shared_config.yaml`
-2. ตรวจว่า `draft_to` มีค่าแล้วหรือยัง:
-   - **มีค่าแล้ว** → ข้าม Setup ทั้งหมด ไป **Phase 0** ทันที
-   - **ยังว่างอยู่** → เริ่ม Setup 2
+1. อ่าน `shared_config.yaml` และ `project/project_config.yaml`
+2. สแกนทุก field ที่มี comment `#importance`
+3. ตรวจว่า field เหล่านั้นมีค่าแล้วหรือยัง:
+   - **ทุก field มีค่าแล้ว** → ข้าม Setup ทั้งหมด ไป **Phase 0** ทันที
+   - **มี field ว่างอยู่** → แสดงรายการ field ที่ยังว่าง แล้วเริ่ม Setup 2
 
 ---
 
 ## Setup 2 — ถามข้อมูลที่ยังว่างอยู่
 
-ถามเฉพาะช่องที่ยังว่าง:
+สำหรับแต่ละ field ที่มี `#importance` และยังว่าง:
+- ถ้า field นั้น **auto-detect จาก Jira API ได้** → ข้ามไป Setup 3 (ไม่ถาม)
+- ถ้า field นั้น **ดึงอัตโนมัติไม่ได้** → ถามผู้ใช้ แล้วเขียนค่าลงไฟล์ทันที
 
-| ช่อง | คำถาม | เงื่อนไข |
-|---|---|---|
-| `draft_to` | "Email สำหรับรับ Draft ก่อน Forward จริง?" | ต้องเป็น `@set.or.th` |
-
-**หลังตอบครบ** → เขียนค่าลง `shared_config.yaml` ทันที แล้วไป Setup 3
+**หลังตอบครบ** → ไป Setup 3
 
 ---
 
 ## Setup 3 — Auto-detect Jira Site (ไม่ถาม)
 
 เรียก `getAccessibleAtlassianResources`:
-- **มี site เดียว** → บันทึก `cloud_id` และ `base_url` ลง `project_config.yaml` อัตโนมัติ ไม่ถาม
+- **มี site เดียว** → บันทึก `cloud_id` และ `base_url` ลง `project/project_config.yaml` อัตโนมัติ ไม่ถาม
 - **มีหลาย site** → แสดงรายการให้ผู้ใช้เลือก 1 site แล้วบันทึก
 
 ---
 
 ## Setup 4 — เลือก Project และ Auto-detect Fields
 
-### 4A — เลือก Project
+### 4A — เลือก Project (Space)
 
 เรียก `getVisibleJiraProjects` → ได้รายการ project ทั้งหมด
 
-- **มี project เดียว** → ใช้อัตโนมัติ ไม่ถาม
-- **มีหลาย project** → แสดงรายการให้เลือก:
-  ```
-  พบ {N} projects — เลือก project ที่ต้องการตั้งค่า:
-  1. CSD — DRS-CSD
-  2. ABC — Project ABC
-  ```
+แสดงรายการให้ผู้ใช้เลือกเสมอ ไม่ว่าจะมีกี่ project:
+```
+พบ {N} projects — เลือก project ที่ต้องการทำงาน:
+1. CSD — DRS-CSD
+2. ABC — Project ABC
+```
+
+บันทึก `project_key` ที่เลือกลง `project/project_config.yaml`
 
 ---
 
@@ -89,7 +89,7 @@
 
 1. **กรอง** field ที่ชื่อลงท้ายด้วย "Unit", "Service", หรือ "Services"
 2. **Match กับ Excel** — เอาชื่อ field ไป match กับคอลัมน์ `Group` ใน `Map_User_Email.xlsx` (case-insensitive) เพื่อยืนยันว่า field นั้นมีรายชื่อคนใน Excel จริง
-3. **บันทึก** เฉพาะ field ที่ match ได้ลง `project_config.yaml` เป็น `service_fields`:
+3. **บันทึก** เฉพาะ field ที่ match ได้ลง `project/project_config.yaml` เป็น `service_fields`:
 
    ```yaml
    service_fields:
@@ -102,7 +102,7 @@
 
 > `service_fields` ใช้ใน Phase 3 สำหรับ map To/CC email เท่านั้น — ไม่แสดงเป็นคอลัมน์ในตาราง email
 
-บันทึกทุกค่าลง `{project_key}/project_config.yaml` พร้อมเพิ่ม `promote_window_days: 3` (default)
+บันทึกทุกค่าลง `project/project_config.yaml` พร้อมเพิ่ม `promote_window_days: 3` (default)
 
 > ต้องการเพิ่ม project อื่น → รันใหม่อีกครั้ง เลือก project อื่น
 
@@ -123,10 +123,7 @@
 1. แสดง **Summary** ค่าทั้งหมดที่ได้มา (ทั้งที่ถามและที่ดึง API):
 
    ```
-   ✦ shared_config
-     draft_to : xxx@set.or.th
-
-   ✦ project_config (CSD)
+   ✦ project_config ({project_key})
      cloud_id         : 6732a23f-...
      promote_date     : customfield_10854
      workflow_task_id : customfield_10653

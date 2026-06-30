@@ -3,381 +3,201 @@ name: jira-uat-daily-reminder
 description: ตรวจสอบ JIRA project ทุกวัน — หา ticket ที่กำลังจะถึง UAT (ใน 5 วัน) และ ticket ที่อยู่ระหว่าง UAT period แล้วสร้าง email draft พร้อม comment Jira
 ---
 
-Daily UAT reminder workflow. Runs automatically every day at the time set in shared_config.yaml.
-
----
-
 ## AUTOMATION RULES (ห้ามฝ่าฝืน)
 
 - **อ่าน config ก่อนทุกรัน** — ค่าทุกอย่างต้องมาจาก config ห้าม hardcode
-- **Query Jira ใหม่ทุกครั้ง** — ห้ามใช้ข้อมูล ticket จาก session ก่อน
-- **อ่าน `UAT_Template_Email.html` ใหม่ทุกครั้ง** — ห้ามสร้าง HTML โครงสร้างใหม่เอง
-- **อ่าน `Map_User_Email.xlsx` ใหม่ทุกครั้ง** — ห้ามใช้รายชื่อ/email จาก session ก่อน
-- **ไม่ถาม ไม่รอ ไม่ยืนยัน** — ทุก phase รันต่อเนื่องอัตโนมัติ
-- **ไม่ขอ permission** ก่อน action ใดๆ (draft, comment, field update)
+- **Query Jira + อ่าน `UAT_Template_Email.html` + อ่าน `Map_User_Email.xlsx` ใหม่ทุกครั้ง** — ห้ามใช้ข้อมูลจาก session ก่อน
+- **ไม่ถาม ไม่รอ ไม่ยืนยัน ไม่ขอ permission** — ทุก phase รันต่อเนื่องอัตโนมัติ
+- **Output บนหน้าจอ Claude เท่านั้น** — ไม่สร้างไฟล์
 
 ---
 
-## PRE-CHECK — ตรวจสอบการเชื่อมต่อก่อนเริ่มทำงาน
+## PRE-CHECK
 
-เรียก `getAccessibleAtlassianResources` เพื่อตรวจสอบว่า Jira MCP เชื่อมต่ออยู่หรือไม่:
-
-- **เชื่อมต่อได้** → ดำเนินการต่อ Phase 0 ทันที
-- **เชื่อมต่อไม่ได้ / error** → หยุดทันที แสดงข้อความ:
-
-> ❌ ไม่สามารถเชื่อมต่อ Jira ได้ — กรุณาตรวจสอบ Settings → Connections → Atlassian แล้วรันใหม่อีกครั้ง
-
-**ห้ามดำเนินการ Phase ใดๆ ต่อจนกว่าจะเชื่อมต่อสำเร็จ**
+เรียก `getAccessibleAtlassianResources`:
+- สำเร็จ → Phase 0
+- error → หยุด แสดง: `❌ ไม่สามารถเชื่อมต่อ Jira ได้ — กรุณาตรวจสอบ Settings → Connections → Atlassian แล้วรันใหม่อีกครั้ง`
 
 ---
 
-## PHASE 0 — Setup Check (ตรวจสอบ config ก่อนทุกรัน)
+## PHASE 0 — Setup Check
 
-### 0A — อ่าน config 2 ระดับ
+### 0A — อ่าน config
 
-**โครงสร้างไฟล์:**
-```
-📁 UAT-Notification/         ← root folder
-├── SKILL.md
-├── shared_config.yaml       ← config ร่วม (email, files, schedule)
-├── Map_User_Email.xlsx
-├── UAT_Template_Email.html
-├── 📁 instructions/
-│   ├── AGENT.md
-│   └── SETUP.md             ← First-time Setup (Phase 0C)
-├── 📁 CSD/
-│   └── project_config.yaml  ← config เฉพาะ project (jira fields)
-└── 📁 ProjectB/
-    └── project_config.yaml
-```
-
-**ขั้นตอน:**
 1. อ่าน `shared_config.yaml` จาก root folder
-2. ตรวจสอบว่ามี project subfolder ไหนบ้าง (โฟลเดอร์ที่มี `project_config.yaml` อยู่ข้างใน)
-3. ถ้ามีหลาย project → ถามผู้ใช้ว่าต้องการรัน project ไหน
-4. อ่าน `{selected_project}/project_config.yaml`
-5. Merge ทั้งสองเป็น config เดียวใน memory: `config = shared + project`
-6. Path ของ files (service_map, email_template) ให้ resolve จาก root folder
+2. ตรวจหา project subfolder (โฟลเดอร์ที่มี `project_config.yaml`) — ถ้ามีหลายตัวให้ถามผู้ใช้เลือก 1
+3. อ่าน `{project}/project_config.yaml` → merge เป็น config เดียวใน memory
+4. Resolve path ของ `files.service_map` และ `files.email_template` จาก root folder
 
-### 0B — ตรวจสอบว่า config ครบหรือยัง
+### 0B — ตรวจ required fields
 
-ตรวจสอบ required fields เหล่านี้ว่าว่างอยู่หรือไม่:
+อ่าน config ทั้งสองในรูป raw text — ทุกบรรทัดที่มี `#importance` คือ required field  
+ตรวจว่า value ว่างหรือไม่ (ว่าง = `""`, `''`, หรือไม่มีค่า)
 
-**จาก shared_config.yaml:**
-- `email.sender_email`, `email.sender_name`, `email.draft_to`
-
-**จาก project_config.yaml:**
-- `jira.cloud_id`, `jira.base_url`, `jira.project_key`
+Required เพิ่มเติม (hardcoded):
 - `jira.fields.uat_start`, `jira.fields.uat_end`, `jira.fields.workflow_task_id`
-- `jira.service_fields[]` — ทุก entry ต้องมี jira_field และ table_column ครบ
+- `jira.service_fields[]` — ทุก entry ต้องมี `jira_field` และ `table_column` ครบ
 
-**ถ้า config ครบแล้ว** → ข้ามไป Phase 1 ทันที
-
-**ถ้า config ยังว่างอยู่** → อ่านไฟล์ `instructions/SETUP.md` แล้วทำตามขั้นตอนในนั้น
+ครบ → Phase 1 | ยังว่าง → อ่าน `instructions/SETUP.md` แล้วทำตามขั้นตอนนั้น
 
 ---
 
-## PHASE 1 — Search ALL tickets in the UAT window
+## PHASE 1 — Search tickets
 
-**Step 1A — JQL search:**
-Use `searchJiraIssuesUsingJql`:
-- cloudId: จาก config `jira.cloud_id`
-- jql: `project = "{project_key}" AND issuetype = Epic AND ((cf[{uat_start}] >= startOfDay() AND cf[{uat_start}] <= endOfDay("+5")) OR (cf[{uat_start}] < startOfDay() AND cf[{uat_end}] >= startOfDay())) ORDER BY cf[{uat_start}] ASC`
-- fields: `["summary", "description", "{uat_start}", "{uat_end}", "{promote_date}", "{workflow_task_id}", "{service_field_1}", ..., "{service_field_N}"]`
-  (ดึงจาก config `jira.fields.*` + `jira.service_fields[].jira_field` ทุกตัว รวม `jira.fields.promote_date`)
-- expand: `"names"` — เพื่อให้ได้ display name ของแต่ละ field (เช่น `customfield_19036` → `"Account Services Unit"`)
-- maxResults: 50
+| | รายละเอียด |
+|---|---|
+| **Tool** | `searchJiraIssuesUsingJql` |
+| **cloudId** | `jira.cloud_id` |
+| **jql** | `project = "{project_key}" AND issuetype = Epic AND ((cf[{uat_start}] >= startOfDay() AND cf[{uat_start}] <= endOfDay("+5")) OR (cf[{uat_start}] < startOfDay() AND cf[{uat_end}] >= startOfDay())) ORDER BY cf[{uat_start}] ASC` |
+| **fields** | `summary`, `description`, ทุก field จาก `jira.fields.*` (รวม promote_date, remark ถ้าไม่ว่าง), ทุก field จาก `jira.service_fields[].jira_field` |
+| **expand** | `names` |
+| **maxResults** | 50 |
+| **หลัง response** | สร้าง `field_display_names` map จาก `.names` (`customfield_xxxxx` → display name) ใช้ใน Phase 2 |
 
-**Step 1A.1 — Build field_display_names map:**
-จาก response `.names` สร้าง map:
-```
-field_display_names = {
-  "customfield_19036": "Account Services Unit",
-  "customfield_19041": "CA Service Unit",
-  ...
-}
-```
-ใช้ใน Phase 2 สำหรับ auto-match กับ Excel Group column
+### ตรวจ notification status (ต่อ ticket)
 
-**Step 1B — ตรวจสอบ comment ต่อ ticket (เช็คทั้งเนื้อหา + วันที่):**
-สำหรับแต่ละ ticket ที่ได้จาก JQL → ใช้ `getJiraIssue` ดึง `comment` field แล้วตรวจสอบ **ทั้งเนื้อหาและวันที่สร้าง**:
+`getJiraIssue` ดึง `comment` field ต่อทุก ticket:
 
-- ถ้ามี comment ที่:
-  1. body ประกอบด้วยข้อความจาก config `jira_comment.text` **และ**
-  2. comment นั้นถูกสร้าง**วันก่อนหน้า** (created date < today)
-  → **notified**
+| เงื่อนไข | สถานะ |
+|---|---|
+| มี comment ที่ body มี `jira_comment.text` **และ** created < today | **notified** |
+| ไม่มี comment / created = today | **unnotified** (รีรันในวันเดิมได้) |
 
-- ถ้าไม่มี comment ดังกล่าว **หรือ** มี comment แต่ถูกสร้าง**วันนี้** (created date = today)
-  → **unnotified**
-
-> **เหตุผล:** ถ้า comment ถูกสร้างวันนี้ ยังถือว่า unnotified — ทำให้รีรันในวันเดิมได้และทุกคนในทีมเห็นสถานะเดียวกัน
-
-**ถ้าทุก ticket เป็น notified** → output:
-> ✅ ไม่มี ticket ที่ต้องส่ง email แจ้งเตือนเพิ่ม — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})
-
-หยุดทำงาน ไม่สร้าง draft
-
-**ถ้ามี unnotified อย่างน้อย 1 ตัว** → ดำเนินการต่อ Phase 2
+ทุก ticket notified → `✅ ไม่มี ticket ที่ต้องส่ง email แจ้งเตือนเพิ่ม — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})` แล้วหยุด  
+มี unnotified ≥ 1 → Phase 2
 
 ---
 
 ## PHASE 2 — Prepare email data
 
-### Read SERVICE_MAP from Excel
+### อ่าน Excel service map
 
-อ่านไฟล์จาก config `files.service_map` (path สัมพัทธ์จาก root folder, sheet: `map`)
-คอลัมน์ใน sheet: `Group` | `Group Mail` | `Member` | `Member Mail`
+อ่าน `files.service_map` sheet `map` (คอลัมน์: `Group` | `Group Mail` | `Member` | `Member Mail`) สร้าง:
+- `name_email`: Member → Member Mail
+- `group_members`: Group → [Members]
+- `group_mail`: Group → Group Mail
 
-สร้าง 3 structures:
+Auto-match service field → Excel group: ดึง display name จาก `field_display_names[jira_field]` แล้ว match กับ key ใน `group_members` (case-insensitive exact match)
 
-**1. name→email map** (สำหรับ lookup recipients):
-```
-name_email = { "CHANAPORN BOONCHOM": "CHANAPORN@set.or.th", ... }
-```
+### Extract per-ticket values
 
-**2. group→members map** (สำหรับ auto-match กับ Jira field):
-```
-group_members = {
-  "Account Services Unit": ["CHANAPORN BOONCHOM", "CHATSARAN PRASONGPHOL", ...],
-  "CA Service Unit": ["KANISORN KAMPRAPHAI", ...],
-  ...
-}
-```
+**Workflow Task ID** (ต่อ ticket):
+1. อ่านจาก `jira.fields.workflow_task_id`
+2. Parse description หา `IT Workflow Task ID:\s*(\d+)`
+3. ถ้าสองค่าต่างกัน → ใช้จาก description | มีแค่อย่างเดียว → ใช้อันนั้น | ไม่มีเลย → Jira key
 
-**3. group→group_mail map** (สำหรับ CC recipients — Unit-level email):
-```
-group_mail = {
-  "Account Services Unit": "AccountServicesUnit@set.or.th",
-  "CA Service Unit":       "CAServiceUnit@set.or.th",
-  ...
-}
-```
-(อ่านจากคอลัมน์ `Group` และ `Group Mail` ใน sheet `map`)
+**Remark** (ต่อ ticket): ถ้า `jira.fields.remark` ไม่ว่าง → ดึงค่า field นั้น | ว่าง → `""`
 
-**Auto-match Jira field → Excel Group:**
-สำหรับแต่ละ `jira_field` ใน config `jira.service_fields[]`:
-1. ดึง display name จาก `field_display_names[jira_field]` (ได้จาก Step 1A.1)
-2. ใช้ display name นั้น match กับ key ใน `group_members` (case-insensitive exact match)
-3. ได้รายชื่อ member ของ group นั้นสำหรับใช้ lookup email และแสดงใน Marketing QA
+### สร้างรายการ ticket
 
-### Extract Workflow Task ID
+- **all_tickets** — ทุก ticket เรียง Promote Date ASC → UAT Start ASC
+- **unnotified_tickets** — เฉพาะที่ยังไม่มี notification comment
 
-สำหรับแต่ละ ticket:
-1. อ่าน field จาก config `jira.fields.workflow_task_id`
-2. Parse `description` หา pattern: `IT Workflow Task ID:\s*(\d+)` (case-insensitive)
-3. ถ้าทั้งสองมีและต่างกัน → ใช้ค่าจาก description (source of truth)
-4. ถ้ามีแค่อย่างเดียว → ใช้อันที่มี
-5. ถ้าไม่มีเลย → fallback = Jira key (เช่น CSD-215)
+### Subject months (`{thai_months_str}`)
 
-### สองรายการ ticket
+ใช้ Promote Date months ของ **unnotified_tickets** (distinct, ASC)  
+ถ้ามีเดือนเดียวแต่มี notified tickets ในเดือนอื่นด้วย → รวมเดือนของ notified ด้วย
 
-- **all_tickets** — ทุก ticket ใน UAT window เรียงตาม Promote Date ASC แล้ว UAT Start ASC
-- **unnotified_tickets** — เฉพาะที่ไม่มี comment `jira_comment.text`
-
-### Determine email months (ใช้ Promote Date — ไม่ใช่ UAT Start)
-
-รวบรวม Promote Date months ของทุก **unnotified_tickets** (distinct, เรียง ASC):
-```
-unnotified_months = ["มิ.ย.", "ส.ค."]   ← ถ้ามีหลายเดือน
-unnotified_months = ["ส.ค."]             ← ถ้าเดือนเดียว 
-
-ในกรณีที่เป็นเดือนเดียว ให้ใส่เดือนที่ notification ไปแล้วด้วย เช่น
-หาก unnotfied_months = ["ส.ค."] แต่มี ticket ที่ได้รับการแจ้งเตือนแล้วในเดือน มิ.ย. ด้วย → ให้แสดงเป็น "มิ.ย. และ ส.ค." เพื่อให้ครอบคลุมถึง ticket ที่แจ้งเตือนไปแล้วด้วย
-```
-
-**สร้าง `{thai_months_str}` สำหรับ Subject:**
-- 1 เดือน → `ส.ค. 2026`
-- 2 เดือน → `มิ.ย. และ ส.ค. 2026`
-- 3+ เดือน → `มิ.ย., ส.ค. และ ต.ค. 2026`  (คั่นด้วย `,` ยกเว้นตัวสุดท้ายใช้ `และ`)
-- **ปีเดียวกันทั้งหมด** → ระบุปีแค่เดือนสุดท้าย เช่น `พ.ย. และ ธ.ค. 2026`
-- **ข้ามปี** → ทุกเดือนต้องระบุปีกำกับ เช่น `ธ.ค. 2026 และ ม.ค. 2027`
-
-**English months** (สำหรับ Tentative Live Date separator row) — ยังคงใช้แยกตาม group เหมือนเดิม
+Format:
+- 1 เดือน: `ส.ค. 2026`
+- 2 เดือน: `มิ.ย. และ ส.ค. 2026`
+- 3+ เดือน: `มิ.ย., ส.ค. และ ต.ค. 2026`
+- ปีเดียวกัน → ระบุปีแค่เดือนสุดท้าย | ข้ามปี → ทุกเดือนระบุปี
 
 ### Group tickets by Promote Date month
 
-แบ่ง all_tickets ออกเป็น groups ตามเดือน+ปีของ Promote Date (เรียง ascending):
-```
-promote_groups = [
-  { month: "June 2026",   thai: "มิ.ย.", year: 2026, tickets: [...] },
-  { month: "August 2026", thai: "ส.ค.", year: 2026,  tickets: [...] },
-  ...
-]
-```
-แต่ละ group จะมี Tentative Live Date separator row ใน UAT Table
+แบ่ง all_tickets เป็น groups ตามเดือน+ปีของ Promote Date (ASC) — แต่ละ group จะมี separator row ใน UAT Table
 
-### Build CC list (Group Mail — ระดับ Unit)
+### Build To / CC lists
 
-สำหรับทุก ticket ใน **all_tickets**:
-1. ดูว่า service field ไหนมีค่า (ไม่ว่าง) → ได้ชื่อ group นั้น
-2. ดึง Group Mail จาก `group_mail[group_name]`
-3. Union ทุก Group Mail email, deduplicated → **cc_emails** list
-        4. ใช้ `;` คั่นระหว่าง email ในกล่อง CC
+**CC** (จาก all_tickets): service field ไหนมีค่า → ดึง Group Mail → union deduplicated, คั่นด้วย `;`
 
-### Build recipients list (Member Mail — รายบุคคล)
+**To** (จาก all_tickets): รวมชื่อจากทุก service field → lookup email ด้วย case-insensitive prefix match (min chars จาก `recipient_matching.prefix_min_chars`) → union deduplicated → ไม่รวม `email.exclude_recipients`
 
-สำหรับทุก ticket ใน **all_tickets**:
-1. รวบรวมทุกชื่อจาก `jira.service_fields[].jira_field` ทุกตัว
-2. ค้นหา email ด้วย case-insensitive prefix match (min chars จาก config `recipient_matching.prefix_min_chars`)
-3. Union ทุก email, deduplicated
-4. ไม่รวม email ใดๆ ที่อยู่ใน config `email.exclude_recipients`
+### Service / Marketing QA columns (ต่อ ticket)
 
-### Service column logic (ต่อ ticket)
-
-วนซ้ำตาม `jira.service_fields[]`:
-- jira_field มีชื่ออยู่ → `✓`
-- jira_field ว่าง → `☐`
-- table_column → ชื่อคอลัมน์ในตาราง UAT
-
-**Marketing QA column:**
-- ใช้ `extractNames(ticket[jira_field])` จากทุก service field ที่ไม่ว่างของ ticket นั้น
-- รวม names ทั้งหมด → deduplicate → join ด้วย `,`
-- ถ้าทุก field ว่าง → แสดงช่องว่าง
+- service field มีชื่อ → `✓` | ว่าง → เว้นว่าง
+- Marketing QA: รวม `extractNames()` จากทุก service field ที่ไม่ว่าง → deduplicate → join `,`
 
 ---
 
-## PHASE 3 — Build output (2 card พร้อมปุ่ม Copy)
-
-### ⚠️ บังคับ — อ่าน Template และ Excel ก่อนสร้าง output ทุกครั้ง
-
-**ก่อนสร้าง card ใดๆ ต้องอ่านไฟล์เหล่านี้จาก root folder:**
-
-1. **อ่าน `UAT_Template_Email.html`** → ใช้โครงสร้าง HTML จากไฟล์นี้เป็นฐานทั้งหมด:
-   - โครงสร้างตาราง UAT (thead, tbody, colspan, rowspan)
-   - ชื่อหัวคอลัมน์ทุกคอลัมน์
-   - Environment table (static ทั้งหมด — copy มาตรงๆ ห้ามสร้างใหม่)
-   - CSS inline style ทุก element
-   - Signature block format
-
-2. **อ่าน `Map_User_Email.xlsx`** (sheet: `map`) → ดึงข้อมูล Group / Member / Member Mail สดทุกครั้ง ห้ามใช้ค่าจาก memory เดิม
-
-**ห้ามสร้างโครงสร้าง HTML ขึ้นมาใหม่เอง** — ต้อง replace placeholder ใน template เท่านั้น:
-- `{{THAI_MONTH}}`, `{{YEAR}}`, `{{ENGLISH_MONTH}}`
-- `{{RECIPIENT_REVIEW_BOX}}`, `{{UNNOTIFIED_TICKET_LINES}}` โดยส่วนนี้ให้คั่นด้วยเครื่องหมาย ";" โดยให้ต่อกันได้ไม่เกินแถวละ 5 address
-- `{{WORKFLOW_TASK_ID}}`, `{{SUMMARY}}`, `{{SVC_*}}`, `{{MARKETING_QA_NAMES}}`
-- `{{START_DD}}`, `{{END_DD_MM}}` (ใช้ date format rule: same-month vs cross-month)
-- `{{SENDER_NAME}}`, `{{SENDER_EMAIL}}`
-
----
+## PHASE 3 — Build output
 
 ใช้ `mcp__visualize__show_widget` สร้าง 2 card:
 
-### Card 1 — หัวข้อ (Subject)
-- header: "หัวข้อ (Subject)" + ปุ่ม Copy (plain text)
-- Subject: `แจ้งกำหนดการทดสอบ UAT : {project_key} งาน CR ที่มี Tentative Live เดือน {thai_months_str}`
+### Card 1 — Subject
 
-**Format ของ `{thai_months_str}`:**
-- 1 เดือน → `ส.ค. 2026`
-- 2 เดือน → `มิ.ย. และ ส.ค. 2026`
-- 3+ เดือน → `มิ.ย., ส.ค. และ ต.ค. 2026` (คั่น `,` ยกเว้นตัวสุดท้ายใช้ `และ`)
-- **ปีเดียวกันทั้งหมด** → ระบุปีแค่เดือนสุดท้าย เช่น `พ.ย. และ ธ.ค. 2026`
-- **ข้ามปี** → ทุกเดือนต้องระบุปีกำกับ เช่น `ธ.ค. 2026 และ ม.ค. 2027`
+`แจ้งกำหนดการทดสอบ UAT : {project_key} งาน CR ที่มี Tentative Live เดือน {thai_months_str}`  
++ ปุ่ม Copy (plain text)
 
----
+### Card 2 — Email body
 
-### Card 2 — เนื้อความ Email
+3 ส่วน แต่ละส่วนมีปุ่ม Copy แยก:
+1. **กล่อง To (สีเขียว)** — copy email addresses เท่านั้น (plain text)
+2. **กล่อง CC (สีส้ม)** — copy email addresses เท่านั้น (plain text)
+3. **เนื้อความ Email** — copy เฉพาะ HTML body จาก template (**ห้ามรวมกล่อง To/CC**)
 
-Card 2 แบ่งเป็น **3 ส่วน** แต่ละส่วนมีปุ่ม Copy **แยกกัน**:
+**HTML body** — ใช้โครงสร้างจาก `UAT_Template_Email.html` ทั้งหมด ห้ามสร้างใหม่ แทนที่ placeholder:
 
-1. **กล่อง To (สีเขียว)** + ปุ่ม Copy → copy เฉพาะ email addresses ของผู้รับ (plain text)
-2. **กล่อง CC (สีส้ม)** + ปุ่ม Copy → copy เฉพาะ email addresses ของ CC (plain text)
-3. **เนื้อความ Email** + ปุ่ม Copy → copy เฉพาะ HTML body จาก template เท่านั้น
-
-> ⚠️ **ปุ่ม Copy ของเนื้อความ Email ต้อง copy เฉพาะ HTML ที่ได้จาก template — ห้ามรวมกล่อง To/CC เข้าไปด้วย**
-
-ใช้โครงสร้าง HTML จาก `UAT_Template_Email.html` ทั้งหมด — **ห้ามสร้าง HTML โครงสร้างใหม่เอง**
-
-แทนที่ placeholder ดังนี้:
-
-| Placeholder | ค่าที่แทน |
+| Placeholder | ค่า |
 |---|---|
-| `{{THAI_MONTH}} {{YEAR}}` | เดือนภาษาไทย + ปี ค.ศ. (ใช้ `{thai_months_str}`) |
-| `{{RECIPIENT_REVIEW_BOX}}` | แสดงผลเป็นกล่องสีเขียวแยกเหนือ email body — **ไม่รวมใน HTML ที่ Copy** |
-| `{{CC_REVIEW_BOX}}` | แสดงผลเป็นกล่องสีส้มแยกเหนือ email body — **ไม่รวมใน HTML ที่ Copy** |
-| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;">ชื่องาน (ตัด prefix [xxx] ออก)</p>` ต่อ unnotified ticket |
-| `{{UAT_TABLE_ROWS}}` | tbody rows ทั้งหมด (separator + ticket rows) |
-| `{{SENDER_NAME}}` | ชื่อผู้ส่ง (จาก shared_config.yaml) |
-| `{{SENDER_EMAIL}}` | email ผู้ส่ง |
-| `{{SENDER_PHONE}}` | เบอร์โทร |
+| `{{THAI_MONTH}} {{YEAR}}` | `{thai_months_str}` |
+| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;">{ชื่องาน ตัด prefix [xxx]}</p>` ต่อ unnotified ticket คั่น `;` ไม่เกิน 5 address ต่อแถว |
+| `{{UAT_TABLE_ROWS}}` | separator rows + ticket rows (ดูโครงสร้างด้านล่าง) |
+| `{{SENDER_NAME}}` `{{SENDER_EMAIL}}` `{{SENDER_PHONE}}` | จาก shared_config.yaml |
 
-**UAT_TABLE_ROWS — โครงสร้าง:**
+**UAT_TABLE_ROWS:**
 
-Separator row (หนึ่งต่อ Promote Date month group):
+Separator row (1 ต่อ Promote Date month group):
 ```html
 <tr>
   <td colspan="11" style="background:#D6E4F0;font-weight:bold;font-style:italic;border:1px solid #999;padding:5px 8px;text-align:center;">
-    Tentative Live Date : {Month Year เช่น June 2026}
+    Tentative Live Date : {Month Year}
   </td>
 </tr>
 ```
 
-Ticket row — **notified** (background ขาว):
+Ticket row — notified (ไม่มี background):
 ```html
 <tr>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;">{WORKFLOW_TASK_ID}</td>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:middle;">{SUMMARY}</td>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;font-size:13px;">✓ หรือ ☐</td>
-  ... (ทุก service column)
-  <td style="border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:middle;font-size:10px;">{MARKETING_QA_NAMES}</td>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;font-size:10px;">{TEST_PERIOD}</td>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top;"></td>
+  <td ...>{WORKFLOW_TASK_ID}</td>
+  <td ...>{SUMMARY}</td>
+  <td ...>✓</td>
+  <!-- service columns ตามลำดับใน jira.service_fields[] -->
+  <td ...>{MARKETING_QA_NAMES}</td>
+  <td ...>{TEST_PERIOD}</td>
+  <td ...>{remark}</td>
 </tr>
 ```
 
-Ticket row — **unnotified** (ทุก `<td>` ต้องมี `background:#FFFDE7;`):
-```html
-<tr>
-  <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;background:#FFFDE7;">{WORKFLOW_TASK_ID}</td>
-  ... (ทุก td ต้องมี background:#FFFDE7;)
-</tr>
-```
+Ticket row — unnotified: เหมือนกันทุก `<td>` เพิ่ม `background:#FFFDE7;`
 
 **Test Period format:**
 - Same month: `UAT 22 - 26/06 2026`
 - Cross month: `UAT 30/06 - 02/07 2026`
 - Cross year: `UAT 28/12/2026 - 03/01/2027`
 
-**Service column (✓ / ☐):**
-- ใช้ `extractNames(ticket[jira_field])` คืน array ไม่ว่าง → `✓`
-- คืน `[]` → `☐`
-
-**Marketing QA cell:**
-- รวม `extractNames(ticket[jira_field])` จากทุก service field ที่ไม่ว่างของ ticket นั้น → deduplicate → join ด้วย `,`
-
 ---
 
 ## PHASE 4 — Comment Jira
 
-สำหรับ **unnotified** ticket และเป็น ticket ที่ยังไม่มีคอมเมนต์ในวันนี้ → ใช้ `addCommentToJiraIssue`:
-- cloudId: จาก config `jira.cloud_id`
-- issueIdOrKey: Jira key ของ ticket นั้น
-- comment body: ข้อความจาก config `jira_comment.text` (เช่น `"UAT Notification Complete"`)
+`addCommentToJiraIssue` ต่อทุก unnotified ticket ที่ยังไม่มี comment วันนี้:
+- cloudId: `jira.cloud_id`
+- issueIdOrKey: Jira key
+- body: `jira_comment.text`
 
 ---
 
 ## PHASE 5 — สรุปผล
 
-แสดงข้อความสรุปท้าย card:
-
-**กรณีมี unnotified:**
+มี unnotified:
 ```
 ✅ UAT Notification เสร็จสิ้น ({today})
    - แจ้งแล้ว: {N} ticket(s) — {key1}, {key2}, ...
    - Comment Jira: เสร็จแล้ว
 ```
 
-**กรณีไม่มีอะไรต้องแจ้ง:**
+ไม่มีอะไรต้องแจ้ง:
 ```
 ✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})
 ```
-
----
-
-## กฎ Automation (ห้ามฝ่าฝืน)
-
-- **Query Jira ใหม่ทุกรัน** — ห้ามใช้ข้อมูล ticket จาก session ก่อน
-- **อ่าน `UAT_Template_Email.html` ใหม่ทุกครั้ง** — ห้ามสร้าง HTML โครงสร้างใหม่เอง
-- **อ่าน `Map_User_Email.xlsx` ใหม่ทุกครั้ง** — ห้ามใช้รายชื่อ/email จาก session ก่อน
-- **ไม่ถาม ไม่รอ ไม่ยืนยัน** — ทุก phase รันต่อเนื่องอัตโนมัติ
-- **ไม่ขอ permission** ก่อน action ใดๆ (draft, comment, field update)
-- **Output บนหน้าจอ Claude เท่านั้น** — ไม่สร้างไฟล์

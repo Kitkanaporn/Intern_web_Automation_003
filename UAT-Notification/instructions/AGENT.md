@@ -30,10 +30,10 @@
 ├── 📁 instructions/
 │   ├── AGENT.md                 ← ไฟล์นี้
 │   └── SETUP.md                 ← First-time Setup (Phase 0C)
-├── 📁 CSD/                      ← project แรก
+├── 📁 project/                  ← project แรก (CSD)
 │   └── project_config.yaml     ← jira fields เฉพาะ CSD
 └── 📁 [ProjectB]/               ← เพิ่ม project ใหม่ได้เลย
-    └── project_config.yaml     ← copy จาก CSD แล้วแก้ค่า
+    └── project_config.yaml     ← copy จาก project/ แล้วแก้ค่า
 ```
 
 ---
@@ -41,7 +41,7 @@
 ## เพิ่ม Project ใหม่
 
 1. สร้างโฟลเดอร์ใหม่ใน `UAT-Notification/` (ชื่อ = Project Key)
-2. Copy `CSD/project_config.yaml` ไปวาง
+2. Copy `project/project_config.yaml` ไปวาง
 3. กรอก jira fields ของ project นั้น (หรือให้ Claude ถามในครั้งแรกที่รัน)
 4. `shared_config.yaml` ไม่ต้องแตะ — ใช้ข้อมูลเดิมได้เลย
 5. เมื่อสร้าง folder ให้นำข้อมูลเข้าให้ครบถ้วน

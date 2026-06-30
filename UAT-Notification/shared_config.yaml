@@ -6,9 +6,9 @@
 
 # ── Email ผู้ส่ง ───────────────────────────────────────────────
 email:
-  sender_email: ""    #email ของผู้ส่ง (ต้องเป็น email ขององค์กรเท่านั้น) — Claude จะถามและกรอกให้อัตโนมัติ
-  sender_name:  ""    #ชื่อของผู้ส่ง
-  sender_phone: ""    #เบอร์โทรศัพท์ของผู้ส่ง หรือ องค์กร
+  sender_email: ""    #importance #email ของผู้ส่ง (ต้องเป็น email ขององค์กรเท่านั้น) — Claude จะถามและกรอกให้อัตโนมัติ
+  sender_name:  ""    #importance #ชื่อของผู้ส่ง
+  sender_phone: ""    #importance #เบอร์โทรศัพท์ของผู้ส่ง หรือ องค์กร
   sender_dept:  "Depository & Registrar Systems Dept."
   sender_org:   "The Stock Exchange of Thailand"
 
