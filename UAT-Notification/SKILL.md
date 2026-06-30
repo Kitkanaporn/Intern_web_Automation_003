@@ -348,12 +348,10 @@ Ticket row — **unnotified** (ทุก `<td>` ต้องมี `background:#
 
 ## PHASE 4 — Comment Jira
 
-สำหรับทุก **unnotified** ticket → ใช้ `addCommentToJiraIssue`:
+สำหรับ **unnotified** ticket และเป็น ticket ที่ยังไม่มีคอมเมนต์ในวันนี้ → ใช้ `addCommentToJiraIssue`:
 - cloudId: จาก config `jira.cloud_id`
 - issueIdOrKey: Jira key ของ ticket นั้น
 - comment body: ข้อความจาก config `jira_comment.text` (เช่น `"UAT Notification Complete"`)
-
-**ทำอัตโนมัติทันที ไม่ถาม ไม่ขอ permission**
 
 ---
 
