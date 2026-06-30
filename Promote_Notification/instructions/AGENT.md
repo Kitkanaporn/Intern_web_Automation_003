@@ -12,7 +12,7 @@
 
 1. อ่าน `instructions/SETUP.md` — logic Phase Setup
 2. อ่าน `SKILL.md` — logic Phase 0–6
-3. อ่าน `shared_config.yaml` และ `project_config.yaml`
+3. อ่าน `shared_config.yaml` และ `project/project_config.yaml`
 4. รันตาม Phase ตามลำดับ
 
 ---
@@ -30,11 +30,8 @@
 │   ├── AGENT.md                      ← ไฟล์นี้
 │   └── SETUP.md                      ← logic Phase Setup (รันครั้งแรกเท่านั้น)
 │
-├── 📁 CSD/
-│   └── project_config.yaml           ← jira fields เฉพาะ CSD
-│
-└── 📁 [ProjectB]/                    ← เพิ่ม project ใหม่ได้เลย
-    └── project_config.yaml
+└── 📁 project/
+    └── project_config.yaml           ← jira fields ของ project ที่เลือกตอน Setup
 ```
 
 ---
@@ -53,7 +50,7 @@
 | **Map_User_Email.xlsx** อยู่ใน root | sheet ชื่อ `map`, คอลัมน์: Group / Group Mail / Member / Member Mail |
 | **Promote_Template_Email.html** อยู่ใน root | ห้ามแก้โครงสร้าง HTML |
 | **shared_config.yaml** | Claude ถามและกรอกให้อัตโนมัติครั้งแรก |
-| **project_config.yaml** | Claude detect จาก Jira และสร้างให้อัตโนมัติ |
+| **project/project_config.yaml** | Claude detect จาก Jira และสร้างให้อัตโนมัติ |
 
 ---
 
@@ -61,7 +58,7 @@
 
 - **Summary Table** — แสดงทุก Epic ใน window พร้อมสถานะ (🟡 ยังไม่แจ้ง / ✓ แจ้งแล้ว)
 - **Email Card** — หัวข้อ + เนื้อหา พร้อมกรอบ To / CC และปุ่ม Copy แยกตาม Promote Date ไม่ได้ทำออกมาเป็นไฟล์ แต่จะแสดงบนหน้าของ claude เพื่อง่ายในการทำงาน
-- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (ต้อง confirm ก่อน)
+- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (เมื่อผู้ใช้กด Complete Process button)
 - **สรุปผล** — แสดงจำนวน ticket ที่แจ้งแล้วท้าย card เสมอ
 
 ---

@@ -32,7 +32,7 @@
 ├── 📁 instructions/
 │   ├── AGENT.md                 ← overview และวิธีใช้งาน
 │   └── SETUP.md                 ← ขั้นตอน first-time setup (Phase 0C)
-└── 📁 CSD/
+└── 📁 project/
     └── project_config.yaml      ← config เฉพาะ project CSD
 ```
 
@@ -69,5 +69,5 @@
 ## เพิ่ม Project ใหม่
 
 1. สร้างโฟลเดอร์ใหม่ชื่อ Project Key (เช่น `ABC/`)
-2. Copy `CSD/project_config.yaml` ไปวาง
+2. Copy `project/project_config.yaml` ไปวาง
 3. รัน skill ตามปกติ — Claude จะ detect และถาม config ของ project ใหม่ให้อัตโนมัติ
