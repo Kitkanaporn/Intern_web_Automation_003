@@ -71,17 +71,23 @@ Required เพิ่มเติม (hardcoded):
 | **maxResults** | 50 |
 | **หลัง response** | สร้าง `field_display_names` map จาก `.names` (`customfield_xxxxx` → display name) ใช้ใน Phase 2 |
 
-### ตรวจ notification status (ต่อ ticket)
+### ตรวจ ticket skip condition (ต่อ ticket)
 
-`getJiraIssue` ดึง `comment` field ต่อทุก ticket:
+`getJiraIssue` ดึง `comment` field ต่อทุก ticket แล้วตัดสินว่า INCLUDE หรือ SKIP:
 
-| เงื่อนไข | สถานะ |
-|---|---|
-| มี comment ที่ body มี `jira_comment.text` **และ** created < today | **notified** |
-| ไม่มี comment / created = today | **unnotified** (รีรันในวันเดิมได้) |
+```
+สำหรับแต่ละ ticket:
+  1. หา comment ที่ body มีข้อความจาก jira_comment.text
+  2. แปลง created timestamp → เอาเฉพาะ DATE (YYYY-MM-DD) ห้ามใช้ time
+  3. ตัดสิน:
+       ไม่มี comment                        →  INCLUDE
+       DATE(comment.created) = DATE(today)  →  INCLUDE  (รีรันวันเดิม)
+       DATE(comment.created) < DATE(today)  →  SKIP
+```
 
-ทุก ticket notified → `✅ ไม่มี ticket ที่ต้องส่ง email แจ้งเตือนเพิ่ม — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})` แล้วหยุด  
-มี unnotified ≥ 1 → Phase 2
+SKIP ได้เฉพาะเมื่อ comment มีอยู่ **และ** date < today เท่านั้น — ทุกกรณีอื่น INCLUDE  
+มี INCLUDE ≥ 1 → ดำเนินการต่อ Phase 2 ทันที  
+ทุก ticket เป็น SKIP → แสดง "✅ วันนี้ไม่มี UAT ต้องแจ้ง..." แล้วหยุด
 
 ---
 
@@ -108,7 +114,7 @@ Auto-match service field → Excel group: ดึง display name จาก `fiel
 ### สร้างรายการ ticket
 
 - **all_tickets** — ทุก ticket เรียง Promote Date ASC → UAT Start ASC
-- **unnotified_tickets** — เฉพาะที่ยังไม่มี notification comment
+- **unnotified_tickets** — ticket ที่ผ่านเงื่อนไข INCLUDE จาก Phase 1 (ไม่มี comment / comment วันนี้) — ใช้สำหรับ Phase 3 แถวสีเหลือง และ Phase 4 post comment
 
 ### Subject months (`{thai_months_str}`)
 
@@ -152,11 +158,20 @@ Format:
 3 ส่วน แต่ละส่วนมีปุ่ม Copy แยก:
 1. **กล่อง To (สีเขียว)** — copy email addresses เท่านั้น (plain text) ใช้ `navigator.clipboard.writeText()`
 2. **กล่อง CC (สีส้ม)** — copy email addresses เท่านั้น (plain text) ใช้ `navigator.clipboard.writeText()`
-3. **เนื้อความ Email** — copy เฉพาะ HTML body จาก template (**ห้ามรวมกล่อง To/CC**) ใช้ `ClipboardItem` กับ `text/html` mime type เพื่อให้ paste ลง Outlook แล้ว render เป็น formatted email:
+3. **เนื้อความ Email** — copy เฉพาะ HTML body จาก template (**ห้ามรวมกล่อง To/CC**) ใช้ `ClipboardItem` กับ `text/html` mime type เพื่อให้ paste ลง Outlook แล้ว render เป็น formatted email
+
+⚠️ **htmlString ต้องเป็น raw HTML string เท่านั้น — ห้าม escape โดยเด็ดขาด:**
+- ห้ามใช้ `JSON.stringify()`, `encodeURIComponent()`, `.replace(/</g,'&lt;')` หรือ escape ใดๆ กับ htmlString
+- ต้องมี tag จริงๆ เช่น `<table>` ไม่ใช่ `&lt;table&gt;`
+- ใช้ template literal (backtick) ครอบ HTML ทั้งหมดโดยตรง
+
 ```javascript
-const blob = new Blob([htmlString], { type: 'text/html' });
-const item = new ClipboardItem({ 'text/html': blob });
-navigator.clipboard.write([item]);
+async function copyEmailHtml() {
+  const htmlString = `<html><body>...raw HTML from template...</body></html>`;
+  const blob = new Blob([htmlString], { type: 'text/html' });
+  const item = new ClipboardItem({ 'text/html': blob });
+  await navigator.clipboard.write([item]);
+}
 ```
 
 **HTML body** — ใช้โครงสร้างจาก `UAT_Template_Email.html` ทั้งหมด ห้ามสร้างใหม่ แทนที่ placeholder:
@@ -164,7 +179,7 @@ navigator.clipboard.write([item]);
 | Placeholder | ค่า |
 |---|---|
 | `{{THAI_MONTH}} {{YEAR}}` | `{thai_months_str}` |
-| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;">{ชื่องาน ตัด prefix [xxx]}</p>` ต่อ unnotified ticket คั่น `;` ไม่เกิน 5 address ต่อแถว |
+| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;">{WORKFLOW_TASK_ID} {ชื่องาน ตัด prefix [xxx]}</p>` ต่อ unnotified ticket |
 | `{{UAT_TABLE_ROWS}}` | separator rows + ticket rows (ดูโครงสร้างด้านล่าง) |
 | `{{SENDER_NAME}}` `{{SENDER_EMAIL}}` `{{SENDER_PHONE}}` | จาก shared_config.yaml |
 
@@ -203,10 +218,13 @@ Ticket row — unnotified: เหมือนกันทุก `<td>` เพิ
 
 ## PHASE 4 — Comment Jira
 
-`addCommentToJiraIssue` ต่อทุก unnotified ticket ที่ยังไม่มี comment วันนี้:
-- cloudId: `jira.cloud_id`
-- issueIdOrKey: Jira key
-- body: `jira_comment.text`
+สำหรับทุก ticket ใน unnotified_tickets (INCLUDE tickets):
+- ตรวจ comment ที่มี body มีข้อความจาก `jira_comment.text` และ DATE(created) = DATE(today)
+- **มีแล้ววันนี้ → ข้ามทันที** ห้าม comment ซ้ำ
+- **ยังไม่มี → `addCommentToJiraIssue`**:
+  - cloudId: `jira.cloud_id`
+  - issueIdOrKey: Jira key
+  - body: `jira_comment.text`
 
 ---
 
