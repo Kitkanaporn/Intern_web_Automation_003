@@ -11,16 +11,24 @@ EXECUTION: Read SKILL.md then execute Phase 0–5 exactly as defined. Do not dev
 
 PHASE 0 (mandatory before anything else):
 - Read shared_config.yaml + project/project_config.yaml
-- Verify these required fields are not empty:
-    shared_config.yaml    : email.sender_email, email.sender_name, email.sender_phone
-    project_config.yaml   : jira.cloud_id, jira.base_url, jira.project_key
-                            jira.fields.uat_start, jira.fields.uat_end, jira.fields.workflow_task_id
-                            jira.service_fields[] — every entry must have jira_field + table_column
-- All fields complete → proceed to Phase 1
-- Any field missing → read instructions/SETUP.md and run First-time Setup before continuing
+- Jira fields empty → auto-detect from Jira API, write to config, continue
+- email.sender_email / sender_name / sender_phone empty → DO NOT STOP, DO NOT ASK, continue immediately with placeholders [ชื่อผู้ส่ง] / [เบอร์โทร] / [sender@set.or.th] in output
+- RULE: Empty sender fields are NEVER a reason to stop or ask. Always proceed to Phase 1.
 
 OUTPUT: Screen only. Do not create files.
 - Notifications needed → show 2 cards (Subject + Email body with 3 separate Copy buttons: To, CC, HTML body)
 - No notifications needed → show: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})"
 
-POST COMMENT: For each unnotified ticket — post "UAT Notification Complete" only if that comment has not been posted today.
+TICKET SKIP RULE — apply per ticket before Phase 2 (CRITICAL, no exceptions):
+Skip a ticket ONLY when BOTH conditions are true:
+  (1) ticket has a comment whose body contains the jira_comment.text value, AND
+  (2) DATE(that comment's created) < DATE(today)   ← strictly before today
+
+All other cases → include the ticket in output:
+  • No matching comment exists → INCLUDE
+  • Matching comment exists but DATE(created) = DATE(today) → INCLUDE  (same-day rerun)
+
+"A comment was posted today" is NOT a reason to skip. Only a comment from a previous day qualifies as skip.
+If ≥1 ticket is included → run Phase 2 and Phase 3. Do not stop early.
+
+POST COMMENT (Phase 4 only): For each included ticket — call addCommentToJiraIssue ONLY IF no matching comment with DATE(created) = DATE(today) exists. If already commented today → skip silently, continue.
