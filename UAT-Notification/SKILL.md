@@ -38,14 +38,24 @@ Required เพิ่มเติม (hardcoded):
 - `jira.fields.uat_start`, `jira.fields.uat_end`, `jira.fields.workflow_task_id`
 - `jira.service_fields[]` — ทุก entry ต้องมี `jira_field` และ `table_column` ครบ
 
-**ถ้าพบ field ว่าง — แบ่งเป็น 2 กลุ่ม:**
+**ก่อนไป Phase 1 ต้อง loop `jira.fields.*` ทุกตัวก่อนเสมอ (mandatory):**
+
+สำหรับทุก field ใน `jira.fields.*` ที่ value = `""` หรือไม่มีค่า:
+1. เรียก `getJiraIssueTypeMetaWithFields` เพื่อดึง field names ทั้งหมดของ project
+2. ใช้ keyword matching ตาม `instructions/SETUP.md` B3 เพื่อหา customfield ID
+3. เขียนค่ากลับลง `project_config.yaml` ทันที
+4. แจ้งผู้ใช้ว่า auto-detect ได้ค่าอะไรบ้าง
+
+**ห้ามข้ามขั้นตอนนี้** — ถ้า `jira.fields.*` ตัวไหนว่าง ต้อง detect และ save ก่อนเสมอ ไม่ว่าจะรันอัตโนมัติหรือไม่
+
+**แบ่งเป็น 2 กลุ่ม:**
 
 | กลุ่ม | Fields | วิธีจัดการ |
 |---|---|---|
-| **Auto-detect จาก Jira** | `jira.cloud_id`, `jira.base_url`, `jira.project_key`, `jira.fields.*` ทุกตัว, `jira.service_fields[].jira_field` | เรียก Jira API ดึงค่าอัตโนมัติโดยใช้ keyword matching เดียวกับ `instructions/SETUP.md` B3 → เขียนลง config → ดำเนินการต่อ |
-| **ต้องถามผู้ใช้** | `email.sender_email`, `email.sender_name`, `email.sender_phone` และข้อมูลส่วนตัวอื่นๆ ที่ Jira ไม่มี | อ่าน `instructions/SETUP.md` แล้วถามเฉพาะ field ที่ยังขาด |
+| **Auto-detect จาก Jira** | `jira.cloud_id`, `jira.base_url`, `jira.project_key`, `jira.fields.*` ทุกตัว, `jira.service_fields[].jira_field` | ทำตามขั้นตอนด้านบน → เขียนลง config → ดำเนินการต่อ |
+| **ต้องถามผู้ใช้** | `email.sender_email`, `email.sender_name`, `email.sender_phone` | บันทึกว่าว่าง → ดำเนินการต่อได้ (แสดง placeholder ใน output) |
 
-> พยายาม auto-detect ให้มากที่สุดก่อนเสมอ — ถามผู้ใช้เฉพาะสิ่งที่ Jira ไม่มีทางรู้เท่านั้น
+> `jira.fields.*` ว่าง = detect ก่อน Phase 1 เสมอ | `email.*` ว่าง = ดำเนินการต่อได้
 
 ---
 
@@ -140,9 +150,14 @@ Format:
 ### Card 2 — Email body
 
 3 ส่วน แต่ละส่วนมีปุ่ม Copy แยก:
-1. **กล่อง To (สีเขียว)** — copy email addresses เท่านั้น (plain text)
-2. **กล่อง CC (สีส้ม)** — copy email addresses เท่านั้น (plain text)
-3. **เนื้อความ Email** — copy เฉพาะ HTML body จาก template (**ห้ามรวมกล่อง To/CC**)
+1. **กล่อง To (สีเขียว)** — copy email addresses เท่านั้น (plain text) ใช้ `navigator.clipboard.writeText()`
+2. **กล่อง CC (สีส้ม)** — copy email addresses เท่านั้น (plain text) ใช้ `navigator.clipboard.writeText()`
+3. **เนื้อความ Email** — copy เฉพาะ HTML body จาก template (**ห้ามรวมกล่อง To/CC**) ใช้ `ClipboardItem` กับ `text/html` mime type เพื่อให้ paste ลง Outlook แล้ว render เป็น formatted email:
+```javascript
+const blob = new Blob([htmlString], { type: 'text/html' });
+const item = new ClipboardItem({ 'text/html': blob });
+navigator.clipboard.write([item]);
+```
 
 **HTML body** — ใช้โครงสร้างจาก `UAT_Template_Email.html` ทั้งหมด ห้ามสร้างใหม่ แทนที่ placeholder:
 
