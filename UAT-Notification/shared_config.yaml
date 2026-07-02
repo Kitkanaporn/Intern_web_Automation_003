@@ -16,6 +16,10 @@ email:
   exclude_recipients:
     - ""
 
+  CC_EMAIL: # email ที่จะ CC ทุกครั้ง (ไม่ต้องแก้ไข ถ้าไม่จำเป็น)
+  - "ptiteam@set.or.th"
+  - "CHAYAJAREE@set.or.th"
+
 # ── Files (path สัมพัทธ์จาก root folder นี้) ─────────────────
 files:
   service_map:    "Map_User_Email.xlsx"      # sheet: "map" | Group / Group Mail / Member / Member Mail
@@ -30,7 +34,3 @@ recipient_matching:
 # ── Jira comment ──────────────────────────────────────────────
 jira_comment:
   text: "UAT Notification Complete"
-
-CC email : # email ที่จะ CC ทุกครั้ง (ไม่ต้องแก้ไข ถ้าไม่จำเป็น)
-  - "ptiteam@set.or.th"
-  - "CHAYAJAREE@set.or.th"
