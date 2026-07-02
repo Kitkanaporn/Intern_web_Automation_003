@@ -133,7 +133,7 @@ Format:
 
 ### Build To / CC lists
 
-**CC** (จาก all_tickets): service field ไหนมีค่า → ดึง Group Mail → union deduplicated, คั่นด้วย `;`
+**CC** (จาก all_tickets): service field ไหนมีค่า → ดึง Group Mail → union deduplicated รวมกับ `CC_EMAIL` จาก shared_config.yaml (ใส่ทุกครั้ง ไม่มีเงื่อนไข) คั่นด้วย `;`
 
 **To** (จาก all_tickets): รวมชื่อจากทุก service field → lookup email ด้วย case-insensitive prefix match (min chars จาก `recipient_matching.prefix_min_chars`) → union deduplicated → ไม่รวม `email.exclude_recipients`
 
@@ -187,27 +187,25 @@ async function copyEmailHtml() {
 
 Separator row (1 ต่อ Promote Date month group):
 ```html
-<tr>
-  <td colspan="11" style="background:#D6E4F0;font-weight:bold;font-style:italic;border:1px solid #999;padding:5px 8px;text-align:center;">
-    Tentative Live Date : {Month Year}
-  </td>
+<tr class="tr-sep">
+  <td colspan="11">Tentative Live Date : {Month Year}</td>
 </tr>
 ```
 
-Ticket row — notified (ไม่มี background):
+Ticket row — notified:
 ```html
 <tr>
-  <td ...>{WORKFLOW_TASK_ID}</td>
-  <td ...>{SUMMARY}</td>
-  <td ...>✓</td>
-  <!-- service columns ตามลำดับใน jira.service_fields[] -->
-  <td ...>{MARKETING_QA_NAMES}</td>
-  <td ...>{TEST_PERIOD}</td>
-  <td ...>{remark}</td>
+  <td class="td-id">{WORKFLOW_TASK_ID}</td>
+  <td class="td-name">{SUMMARY}</td>
+  <td class="td-check">✓</td>
+  <!-- service columns ตามลำดับใน jira.service_fields[] — ✓ หรือ ว่าง -->
+  <td>{MARKETING_QA_NAMES}</td>
+  <td>{TEST_PERIOD}</td>
+  <td class="td-remark">{remark}</td>
 </tr>
 ```
 
-Ticket row — unnotified: เหมือนกันทุก `<td>` เพิ่ม `background:#FFFDE7;`
+Ticket row — unnotified: เหมือนกัน เพิ่ม `class="tr-new"` ที่ `<tr>` เท่านั้น
 
 **Test Period format:**
 - Same month: `UAT 22 - 26/06 2026`
