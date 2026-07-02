@@ -12,9 +12,6 @@ email:
   sender_dept:  "Depository & Registrar Systems Dept."
   sender_org:   "The Stock Exchange of Thailand"
 
-  # Draft จะส่งถึง email นี้เท่านั้น เพื่อตรวจสอบก่อน Forward
-  # draft_to: ""
-
   # Email เหล่านี้จะไม่ถูกรวมในรายชื่อผู้รับจริง
   exclude_recipients:
     - ""
@@ -34,9 +31,6 @@ recipient_matching:
 jira_comment:
   text: "UAT Notification Complete"
 
-# ── Schedule ──────────────────────────────────────────────────
-schedule:
-  run_time: ""   # เวลาที่รันทุกวัน (HH:MM) เช่น 16:15
-
-CC email :
-  -
+CC email : # email ที่จะ CC ทุกครั้ง (ไม่ต้องแก้ไข ถ้าไม่จำเป็น)
+  - "ptiteam@set.or.th"
+  - "CHAYAJAREE@set.or.th"
