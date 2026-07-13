@@ -31,6 +31,31 @@ recipient_matching:
   prefix_min_chars: 10
   case_sensitive:   false
 
+# ── Graph API / Power Automate webhook ────────────────────────
+# วิธีสร้าง flow: https://make.powerautomate.com → สร้าง → Instant cloud flow
+#   Trigger: "เมื่อได้รับคำขอ HTTP" (When an HTTP request is received)
+#   Action:  "ส่งอีเมล (V2)" จาก Outlook 365
+#   หลัง Save จะได้ HTTP POST URL → วางที่ send_email_webhook ด้านล่าง
+graph_api:
+  # ── Option A: Power Automate webhook (ง่ายกว่า ไม่ต้องจัดการ token) ──────
+  send_email_webhook: ""   # วาง URL ของ Power Automate flow ที่นี่
+
+  # ── Option B: Graph API ตรง (ต้องขอ IT สร้าง Azure App Registration) ──────
+  tenant_id:     ""        # Azure AD Tenant ID
+  client_id:     ""        # Azure App Client ID
+  client_secret: ""        # Azure App Client Secret
+  sender_email:  ""        # email ที่ส่งในชื่อ เช่น OUTSOURCE2960@set.or.th
+
+  # หมายเหตุ: token จะถูกขอ เฉพาะเมื่อมี ticket ที่ต้องแจ้ง (Phase 3 เท่านั้น)
+  #           ขอใหม่ทุกรัน ใช้เสร็จทิ้ง ไม่เก็บข้ามวัน
+
+  # ── Review Mode ───────────────────────────────────────────────
+  # AI ส่ง email มาที่นี่ก่อน → ฝ่ายนี้ตรวจสอบแล้ว forward ต่อเอง
+  # email ที่ได้รับจะมี To จริง / CC จริง แนบมาด้วย เพื่อสะดวกใน forward
+  # Jira comment โพสต์ทันทีหลัง AI ส่ง (ป้องกันส่งซ้ำวันถัดไป)
+  # ถ้าว่าง → ส่ง To/CC จริงเลย (production mode)
+  draft_recipient: "OUTSOURCE2960@set.or.th"   # เช่น OUTSOURCE2960@set.or.th
+
 # ── Jira comment ──────────────────────────────────────────────
 jira_comment:
   text: "UAT Notification Complete"

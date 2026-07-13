@@ -146,6 +146,103 @@ Format:
 
 ## PHASE 3 — Build output
 
+**ถึง Phase 3 ได้ = มี INCLUDE ticket ≥ 1 แล้ว — ตรวจ mode การส่งจาก shared_config.yaml:**
+
+```
+ขั้นตอนที่ 1 — ตรวจ draft_recipient:
+  ถ้า graph_api.draft_recipient ไม่ว่าง → REVIEW MODE:
+    → actual_to  = [draft_recipient]        (ส่งมาที่ฝ่าย review แทน)
+    → actual_cc  = []                       (ไม่ CC ใคร)
+    → เพิ่ม banner บนสุดของ email body:
+       "📋 กรุณา Forward อีเมลนี้ไปที่
+        To: {to_list จริง}
+        CC: {cc_list จริง}"
+    → Jira comment โพสต์ปกติ (Phase 4) — ไม่เปลี่ยนแปลง
+  ถ้าว่าง → PRODUCTION MODE:
+    → actual_to  = to_list จริง
+    → actual_cc  = cc_list จริง
+
+ขั้นตอนที่ 2 — ตรวจ send mode:
+  1. graph_api.send_email_webhook ไม่ว่าง  → WEBHOOK MODE   (Power Automate)
+  2. graph_api.client_id ไม่ว่าง           → GRAPH API MODE (ขอ token ตรง)
+  3. ทั้งคู่ว่าง                           → COPY/PASTE MODE (เดิม)
+
+หมายเหตุ: ขอ token / เรียก webhook เฉพาะตรงนี้เท่านั้น
+           ห้ามขอ token ก่อนหน้านี้ เพราะยังไม่รู้ว่าจะต้องส่งหรือเปล่า
+```
+
+---
+
+### WEBHOOK MODE — ส่งอีเมลอัตโนมัติผ่าน Power Automate
+
+> ถึงขั้นนี้ได้ = มี INCLUDE ticket ≥ 1 แล้ว — ค่อยเริ่มขั้นตอนส่งอีเมล
+
+เรียก `fetch` POST ไปยัง `send_email_webhook` พร้อม JSON payload:
+
+```json
+{
+  "to":      "<email1>; <email2>",
+  "cc":      "<cc1>; <cc2>",
+  "subject": "แจ้งกำหนดการทดสอบ UAT : {project_key} งาน CR ที่มี Tentative Live เดือน {thai_months_str}",
+  "body":    "<html><body>...HTML body จาก template ไม่รวมกล่อง To/CC...</body></html>"
+}
+```
+
+- Content-Type: `application/json`
+- ห้าม escape HTML ใน body — ส่งเป็น raw HTML string โดยตรง
+- หลัง fetch สำเร็จ → แสดงผลด้วย `show_widget`:
+
+```
+✅ ส่งอีเมลเรียบร้อยแล้ว ({today})
+   To: {to_list}
+   CC: {cc_list}
+   Subject: {subject}
+```
+
+- fetch สำเร็จ → **ไม่ต้องแสดง card / copy button** — แสดงแค่สรุป plain text แล้วไป Phase 4 ทันที
+- fetch ล้มเหลว → แสดง error + fallback เป็น COPY/PASTE MODE แทน
+
+---
+
+### GRAPH API MODE — ขอ token แล้วส่งตรง (ไม่ผ่าน Power Automate)
+
+> ถึงขั้นนี้ได้ = มี INCLUDE ticket ≥ 1 แล้ว — ค่อยขอ token
+
+**Step 1 — ขอ Access Token จาก Azure AD:**
+```
+POST https://login.microsoftonline.com/{graph_api.tenant_id}/oauth2/v2.0/token
+Body (form-urlencoded):
+  grant_type=client_credentials
+  client_id={graph_api.client_id}
+  client_secret={graph_api.client_secret}
+  scope=https://graph.microsoft.com/.default
+← ได้ access_token (อายุ 1 ชม. — เกินพอสำหรับ 1 รัน)
+```
+
+**Step 2 — ส่งอีเมลผ่าน Graph API:**
+```
+POST https://graph.microsoft.com/v1.0/users/{graph_api.sender_email}/sendMail
+Header: Authorization: Bearer {access_token}
+        Content-Type: application/json
+Body:
+{
+  "message": {
+    "subject": "...",
+    "body": { "contentType": "HTML", "content": "<html>...raw HTML...</html>" },
+    "toRecipients":  [{ "emailAddress": { "address": "email1" } }, ...],
+    "ccRecipients":  [{ "emailAddress": { "address": "cc1"   } }, ...]
+  }
+}
+```
+
+- token ใช้แล้วทิ้ง ไม่ต้องเก็บ — รันหน้าขอใหม่
+- ส่งสำเร็จ (HTTP 202) → **ไม่ต้องแสดง card / copy button** — แสดงแค่สรุป plain text แล้วไป Phase 4 ทันที
+- ส่งล้มเหลว → แสดง error + fallback เป็น COPY/PASTE MODE แทน
+
+---
+
+### COPY/PASTE MODE — แสดง card พร้อมปุ่ม Copy (fallback)
+
 ใช้ `mcp__visualize__show_widget` สร้าง 2 card:
 
 ### Card 1 — Subject
@@ -179,7 +276,7 @@ async function copyEmailHtml() {
 | Placeholder | ค่า |
 |---|---|
 | `{{THAI_MONTH}} {{YEAR}}` | `{thai_months_str}` |
-| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;">{WORKFLOW_TASK_ID} {ชื่องาน ตัด prefix [xxx]}</p>` ต่อ unnotified ticket |
+| `{{UNNOTIFIED_TICKET_LINES}}` | `<p style="margin-left:20px;font-size:16px;">{WORKFLOW_TASK_ID} {ชื่องาน ตัด prefix [xxx]}</p>` ต่อ unnotified ticket |
 | `{{UAT_TABLE_ROWS}}` | separator rows + ticket rows (ดูโครงสร้างด้านล่าง) |
 | `{{SENDER_NAME}}` `{{SENDER_EMAIL}}` `{{SENDER_PHONE}}` | จาก shared_config.yaml |
 
@@ -228,10 +325,19 @@ Ticket row — unnotified: เหมือนกัน เพิ่ม `class="t
 
 ## PHASE 5 — สรุปผล
 
-มี unnotified:
+มี unnotified (WEBHOOK / GRAPH API MODE):
 ```
 ✅ UAT Notification เสร็จสิ้น ({today})
-   - แจ้งแล้ว: {N} ticket(s) — {key1}, {key2}, ...
+   - ส่งอีเมลแล้ว: {N} ticket(s) — {key1}, {key2}, ...
+   - To: {to_emails}
+   - CC: {cc_emails}
+   - Comment Jira: เสร็จแล้ว
+```
+
+มี unnotified (COPY/PASTE MODE):
+```
+📋 กรุณา copy และส่งอีเมลด้านบน ({today})
+   - ticket ที่ต้องแจ้ง: {N} ticket(s) — {key1}, {key2}, ...
    - Comment Jira: เสร็จแล้ว
 ```
 

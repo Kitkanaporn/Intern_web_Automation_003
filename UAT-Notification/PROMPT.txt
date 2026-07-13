@@ -16,8 +16,20 @@ PHASE 0 (mandatory before anything else):
 - RULE: Empty sender fields are NEVER a reason to stop or ask. Always proceed to Phase 1.
 
 OUTPUT: Screen only. Do not create files.
-- Notifications needed → show 2 cards (Subject + Email body with 3 separate Copy buttons: To, CC, HTML body)
-- No notifications needed → show: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})"
+- No INCLUDE tickets → show: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})" แล้วหยุด
+- INCLUDE tickets ≥ 1 → run Phase 2 แล้วตรวจ send mode ใน Phase 3:
+    • graph_api.send_email_webhook มีค่า → WEBHOOK MODE: ส่งอัตโนมัติ ไม่ต้อง show card → แสดงแค่สรุปข้อความสั้นๆ
+    • graph_api.client_id มีค่า          → GRAPH API MODE: ขอ token แล้วส่งอัตโนมัติ ไม่ต้อง show card → แสดงแค่สรุปข้อความสั้นๆ
+    • ทั้งคู่ว่าง                        → COPY/PASTE MODE: show 2 cards พร้อม Copy buttons (fallback)
+
+REVIEW MODE: ถ้า graph_api.draft_recipient ไม่ว่าง →
+  - ส่ง email ไปที่ draft_recipient เท่านั้น (ไม่ส่ง To/CC จริง)
+  - เพิ่ม banner บนสุดของ email: "📋 กรุณา Forward ไปที่ To: {to_list} / CC: {cc_list}"
+  - โพสต์ Jira comment ตามปกติ (Phase 4) — ป้องกันส่งซ้ำวันถัดไป
+  - ฝ่าย review รับ email → ตรวจสอบ → forward ต่อเอง
+
+CRITICAL: ห้ามขอ token หรือเรียก webhook ก่อน Phase 3
+          ต้องรู้ก่อนว่ามี INCLUDE ticket จึงค่อยส่ง
 
 TICKET SKIP RULE — apply per ticket before Phase 2 (CRITICAL, no exceptions):
 Skip a ticket ONLY when BOTH conditions are true:

@@ -21,7 +21,7 @@ body         { font-family: Arial, sans-serif; font-size: 13px; color: #000; bac
 .cc-box .box-emails { color: #8D3900; line-height: 2; }
 
 /* ── UAT Table ───────────────────────────────────────────────── */
-.uat-table { border-collapse: collapse; width: 100%; font-size: 11px; margin: 12px 0; }
+.uat-table { border-collapse: collapse; width: 100%; font-size: 16px; margin: 12px 0; }
 
 /* Header */
 .uat-table th          { background: #e7beaa; color: #000; border: 1px solid #000; padding: 5px 6px; text-align: center; vertical-align: middle; }
@@ -80,16 +80,16 @@ body         { font-family: Arial, sans-serif; font-size: 13px; color: #000; bac
     </div>
     -->
 
-    <p>เรียน &nbsp;&nbsp;&nbsp; ผู้เกี่ยวข้องทุกท่าน</p>
-    <p>ขอแจ้ง &nbsp;&nbsp; กำหนดการทดสอบ UAT : CSD งาน CR ที่มี Tentative Live เดือน <strong>{{THAI_MONTH}} {{YEAR}}</strong></p>
-    <p>โดยการเพิ่มรายการ</p>
+    <p style="margin:0 0 4px;font-size:16px;">เรียน &nbsp;&nbsp;&nbsp; ผู้เกี่ยวข้องทุกท่าน</p>
+    <p style="margin:0 0 4px;font-size:16px;">ขอแจ้ง &nbsp;&nbsp; กำหนดการทดสอบ UAT : CSD งาน CR ที่มี Tentative Live เดือน <strong>{{THAI_MONTH}} {{YEAR}}</strong></p>
+    <p style="margin:0 0 4px;font-size:16px;">โดยการเพิ่มรายการ</p>
     {{UNNOTIFIED_TICKET_LINES}}
-    <!-- ตัวอย่าง: <p style="margin-left:20px;">ชื่องาน (ตัด prefix [xxx] ออก)</p> -->
-    <p>ตามตารางด้านล่าง</p>
+    <!-- ตัวอย่าง: <p style="margin-left:20px;font-size:16px;">ชื่องาน (ตัด prefix [xxx] ออก)</p> -->
+    <p style="margin:0 0 8px;font-size:16px;">ตามตารางด้านล่าง</p>
     <br>
 
     <!-- UAT Table -->
-    <table class="uat-table">
+    <table class="uat-table" style="font-size:16px;">
       <thead>
         <tr>
           <th rowspan="2" class="th-taskid">Task ID</th>
@@ -181,7 +181,7 @@ body         { font-family: Arial, sans-serif; font-size: 13px; color: #000; bac
     <br>
     <hr style="border: none; border-top: 1px solid #ccc;">
 
-    <div class="signature">
+    <div class="signature" style="border-top:1px solid #ccc;margin-top:20px;padding-top:12px;font-size:14px;color:#333;line-height:1.7;">
       <strong>{{SENDER_NAME}}</strong><br>
       Phone : {{SENDER_PHONE}}<br>
       e-mail : {{SENDER_EMAIL}}<br>
