@@ -41,10 +41,10 @@ graph_api:
   send_email_webhook: ""   # วาง URL ของ Power Automate flow ที่นี่
 
   # ── Option B: Graph API ตรง (ต้องขอ IT สร้าง Azure App Registration) ──────
-  tenant_id:     ""        # Azure AD Tenant ID
-  client_id:     ""        # Azure App Client ID
-  client_secret: ""        # Azure App Client Secret
-  sender_email:  ""        # email ที่ส่งในชื่อ เช่น OUTSOURCE2960@set.or.th
+  tenant_id:     "5c241f93-f00b-457d-9dd1-1b7b2d034f3e"        # Azure AD Tenant ID
+  client_id:     "3cd3c538-abea-4a22-b6b4-9b3ba1ef4c2a"        # Azure App Client ID
+  client_secret: "f8fd3ef5-44ac-42c0-a0a4-42554f63dea4"        # Azure App Client Secret
+  sender_email:  "Kitkanaporn8125@gmail.com"        # email ที่ส่งในชื่อ เช่น OUTSOURCE2960@set.or.th
 
   # หมายเหตุ: token จะถูกขอ เฉพาะเมื่อมี ticket ที่ต้องแจ้ง (Phase 3 เท่านั้น)
   #           ขอใหม่ทุกรัน ใช้เสร็จทิ้ง ไม่เก็บข้ามวัน
