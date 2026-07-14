@@ -307,12 +307,33 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 ---
 
-### Card 2 — เนื้อหา Email
+### Card 2 — Recipients (Unit)
 
-ประกอบด้วย:
+**กรอบสีเขียว** — Group Mail รวมทุก Unit ที่ service field มีค่า (deduplicated, คั่นด้วย `;`) พร้อมปุ่ม **Copy**
 
-1. **กรอบ CC** — Group Mail รวม (deduplicated, คั่นด้วย `;`) ทำออกมาเป็น กรอบ สีเขียว พร้อมปุ่ม copy
-2. **เนื้อ email** — render จาก `Promote_Template_Email.html` โดยแทน placeholder:
+> Copy ใช้ `navigator.clipboard.writeText(...)` — plain text
+
+---
+
+### Card 3 — CC
+
+**กรอบสีฟ้า** — อีเมลที่กำหนดอยู่ในไฟล์ `shared_config.yaml` ในส่วน `cc_email` โดยเอาค่าที่ไม่ว่างทั้งหมดมาเชื่อมกันด้วย `;` พร้อมปุ่ม **Copy**
+
+> Copy ใช้ `navigator.clipboard.writeText(...)` — plain text
+
+---
+
+### Card 4 — เนื้อหา Email
+
+> **บังคับ: ต้องใช้ `show_widget` แสดง HTML ที่ render แล้วเสมอ — ห้าม output เป็น code block หรือ plain text**
+
+ขั้นตอน:
+1. อ่าน `Promote_Template_Email.html` เป็น string
+2. แทน placeholder ทุกตัวด้วยค่าจริง
+3. ส่ง HTML string ที่ได้ไปแสดงผลผ่าน `show_widget` เพื่อให้เห็นหน้าตา email จริงๆ
+4. มีปุ่ม **Copy** ใต้ widget — ใช้ `ClipboardItem` + `text/html` เพื่อให้ paste ลง Outlook แล้ว render เป็น email ได้ทันที
+
+render จาก `Promote_Template_Email.html` โดยแทน placeholder:
 
 **Claude ใส่ให้อัตโนมัติ:**
 
