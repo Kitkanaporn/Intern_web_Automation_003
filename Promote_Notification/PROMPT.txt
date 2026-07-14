@@ -58,5 +58,4 @@ Display this message:
 `วันนี้ไม่มีรายการที่ต้องส่ง Promote Notification`
 
 ## After Processing
-After displaying the result, show a summary section with a `Complete Process` button.
-When the user clicks `Complete Process`, post the Jira comment: `"Promote Notification Complete"` on every ticket that was included in the notification.
+After displaying the email cards, automatically post the Jira comment `"Promote Notification Complete"` on every unnotified ticket. Do not wait for user confirmation.

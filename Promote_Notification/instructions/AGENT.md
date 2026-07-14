@@ -58,7 +58,7 @@
 
 - **Summary Table** — แสดงทุก Epic ใน window พร้อมสถานะ (🟡 ยังไม่แจ้ง / ✓ แจ้งแล้ว)
 - **Email Card** — หัวข้อ + เนื้อหา พร้อมกรอบ To / CC และปุ่ม Copy แยกตาม Promote Date ไม่ได้ทำออกมาเป็นไฟล์ แต่จะแสดงบนหน้าของ claude เพื่อง่ายในการทำงาน
-- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (เมื่อผู้ใช้กด Complete Process button)
+- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (อัตโนมัติหลัง Phase 4)
 - **สรุปผล** — แสดงจำนวน ticket ที่แจ้งแล้วท้าย card เสมอ
 
 ---
@@ -76,7 +76,7 @@
 - **ห้ามแก้ไขไฟล์ใดๆ** ในโฟลเดอร์นี้โดยไม่ได้รับอนุญาต ยกเว้น config ที่ต้องกรอกตอน Setup
 - **ห้ามสร้าง HTML ใหม่เอง** — ต้อง replace placeholder ใน template เท่านั้น
 - **ห้ามใช้ข้อมูลจาก session ก่อน** — ต้องดึงจาก Jira และอ่านไฟล์ใหม่ทุกครั้ง
-- **ห้าม post comment Jira** โดยไม่ได้รับ confirm จากผู้ใช้ก่อน
+- **Post comment Jira** อัตโนมัติทันทีหลังแสดง email card — ไม่ต้องรอ confirm
 - **ห้ามส่ง email จริง** — แสดง draft บนหน้าจอ Claude เท่านั้น ผู้ใช้ forward เอง
 - **ห้ามสร้างไฟล์ output** — แสดงผลบนหน้าจอ Claude เท่านั้น
 
