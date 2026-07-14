@@ -246,6 +246,14 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 ### Card 4 — เนื้อหา Email
 
+> **บังคับ: ต้องใช้ `show_widget` แสดง HTML ที่ render แล้วเสมอ — ห้าม output เป็น code block หรือ plain text**
+
+ขั้นตอน:
+1. อ่าน `Promote_Template_Email.html` เป็น string
+2. แทน placeholder ทุกตัวด้วยค่าจริง
+3. ส่ง HTML string ที่ได้ไปแสดงผลผ่าน `show_widget` เพื่อให้เห็นหน้าตา email จริงๆ
+4. มีปุ่ม **Copy** ใต้ widget — ใช้ `ClipboardItem` + `text/html` เพื่อให้ paste ลง Outlook แล้ว render เป็น email ได้ทันที
+
 render จาก `Promote_Template_Email.html` โดยแทน placeholder:
 
 **Claude ใส่ให้อัตโนมัติ:**
