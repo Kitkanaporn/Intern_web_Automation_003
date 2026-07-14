@@ -1,21 +1,34 @@
-/schedule   xxx
-workflow ชื่อ UAT_Notification 
+You are executing the UAT Notification Workflow for the CSD Jira project. Run fully automatically — no confirmation, no questions, no pauses at any step.
 
-โดยใช้เฉพาะไฟล์ที่ส่งไปเท่านั้ และห้ามใช้ข้อมูลจากแหล่งอื่น ใช้ไฟล์ต่อไปนี้เท่านั้น: 
+WORKSPACE: All files are in the UAT-Notification/ folder.
+- SKILL.md — core logic (Phase 0–5)
+- shared_config.yaml — global email config
+- project/project_config.yaml — Jira project config
+- Map_User_Email.xlsx — user-to-email mapping (sheet: map)
+- UAT_Template_Email.html — email HTML template
 
-AGENT.md สำหรับคำสั่งและภาพรวมของ workflow; 
-SKILL.md สำหรับ logic หลัก Phase 0–5; 
-shared_config.yaml สำหรับ config กลางของอีเมลและ schedule; 
-project_config.yaml สำหรับ config ของ Jira project CSD; 
-Map_User_Email.xlsx สำหรับ mapping ผู้ใช้และอีเมลจากชีต map; 
-UAT_Template_Email.html สำหรับ template อีเมล อ่าน AGENT.md และ 
-SKILL.md เพื่อโหลด logic 
+EXECUTION: Read SKILL.md then execute Phase 0–5 exactly as defined. Do not deviate.
 
-การทำงาน 
-อ่าน shared_config.yaml และ project_config.yaml เพื่อดึงค่าการตั้งค่าทั้งหมด เชื่อมต่อ Jira และดึง Epic issues ทั้งหมดที่มี 
-UAT Start Date ภายใน 5 วันข้างหน้า หรืออยู่ในช่วง UAT ปัจจุบัน Cross-reference กับ Map_User_Email.xlsx 
-เพื่อหา recipient จาก service fields ทำตาม Phase 1–5 ตามที่กำหนดไว้ใน SKILL.md โดยไม่ต้องขอ 
-confirmation และให้ทำงานแบบอัตโนมัติเต็มรูปแบบ แสดงผลลัพธ์บนหน้าจอโดยตรงเท่านั้น และห้ามสร้างไฟล์ output ถ้ามี 
-UAT ที่ต้องแจ้งเตือน ให้แสดง 2 cards ได้แก่ subject และ email body พร้อมกล่อง recipient, กล่อง CC
-และเนื้อหาอีเมล โดยแต่ละส่วนต้องมีปุ่ม Copy ถ้าวันนี้ไม่มี UAT ที่ต้องแจ้งเตือน ให้แสดงข้อความว่าไม่จำเป็นต้องส่ง 
-UAT notification วันนี้ หลังประมวลผลเสร็จ ให้ post Jira comment ว่า "UAT Notification Complete" บน ticket ทั้งหมดที่ยัง
+PHASE 0 (mandatory before anything else):
+- Read shared_config.yaml + project/project_config.yaml
+- Jira fields empty → auto-detect from Jira API, write to config, continue
+- email.sender_email / sender_name / sender_phone empty → DO NOT STOP, DO NOT ASK, continue immediately with placeholders [ชื่อผู้ส่ง] / [เบอร์โทร] / [sender@set.or.th] in output
+- RULE: Empty sender fields are NEVER a reason to stop or ask. Always proceed to Phase 1.
+
+OUTPUT: Screen only. Do not create files.
+- Notifications needed → show 2 cards (Subject + Email body with 3 separate Copy buttons: To, CC, HTML body)
+- No notifications needed → show: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})"
+
+TICKET SKIP RULE — apply per ticket before Phase 2 (CRITICAL, no exceptions):
+Skip a ticket ONLY when BOTH conditions are true:
+  (1) ticket has a comment whose body contains the jira_comment.text value, AND
+  (2) DATE(that comment's created) < DATE(today)   ← strictly before today
+
+All other cases → include the ticket in output:
+  • No matching comment exists → INCLUDE
+  • Matching comment exists but DATE(created) = DATE(today) → INCLUDE  (same-day rerun)
+
+"A comment was posted today" is NOT a reason to skip. Only a comment from a previous day qualifies as skip.
+If ≥1 ticket is included → run Phase 2 and Phase 3. Do not stop early.
+
+POST COMMENT (Phase 4 only): For each included ticket — call addCommentToJiraIssue ONLY IF no matching comment with DATE(created) = DATE(today) exists. If already commented today → skip silently, continue.

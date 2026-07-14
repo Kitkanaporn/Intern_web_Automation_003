@@ -18,47 +18,39 @@
   .email-body { padding: 24px 28px; line-height: 1.8; }
   .email-body p { margin: 0 0 4px 0; }
 
-  .promote-table { border-collapse: collapse; width: 100%; font-size: 11px; margin: 12px 0; color: #4783bc; }
-  .promote-table td { border: none ; padding: 6px 8px; vertical-align: middle; }
-  .promote-table td.col-dept { width: 7.5%; text-align: center; color: #1F4E79; font-weight: bold; }
-  .promote-table td.col-task { width: 17.5%; text-align: center; color: #1F4E79; font-weight: bold; }
-  .promote-table td.col-detail { width: 75%; text-align: left; }
+  .promote-table { border-collapse: collapse; border: 1px solid #000; width: 100%; font-size: 11px; margin: 12px 0; color: #4783bc; }
+  .promote-table th, .promote-table td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; }
+  .promote-table th { background-color: #BDD7EE; color: #1F4E79; text-align: center; }
+  .promote-table td.col-task { width: 20%; text-align: center; color: #1F4E79; font-weight: bold; }
+  .promote-table td.col-detail { width: 80%; text-align: left; }
 
   .signature { border-top : 1px solid #666 ; margin-top: 20px; padding-top: 6px; font-size: 12px; color: #333; line-height: 1.7; }
 
   .placeholder { font-style: italic; font-weight: bold ; font-size: 12px; }
+  .header-table {font-weight: bold; font-size: 14px ; text-align: left; color: #000;}
 
 </style>
 </head>
 <body>
 
 <div class="email-container">
-
-  <!-- <div class="email-meta">
-    <div class="email-subject-line">
-      <span>แจ้ง Promote ระบบ CSD/Subscription Version </span>
-      <span class = "placeholder">{{VERSION}}</span> 
-      <span>วันที่ </span>
-      <span class="placeholder">{{วัน/วันที่/เดือน/ปี}}</span>
-    </div> 
-  </div> -->
-  <!-- <div class ="email-sent-department">
-    <span class="placeholder">{{email of department}}</span>
-  </div> -->
   
   <div class="email-body">
 
     <p>เรียน &nbsp;&nbsp;&nbsp; ผู้เกี่ยวข้องทุกท่าน</p>
     <p> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ทาง CSD ได้มีการ Promote ระบบ CSD/Subscription Version 
-      <span class="placeholder">{{VERSION}}</span> ในวันที่ 
+      <span class="placeholder">{{VERSION}}</span> ณ
       <span class="placeholder">{{วัน/วันที่/เดือน/ปี}}</span></p>
     <p>ทั้งนี้รายละเอียดที่ Promote มีดังนี้</p>
     <br>
 
     <table class="promote-table">
       <tbody>
+        <tr class = "header-table" >
+          <th class = "col-task">CR/IR Task ID</th>
+          <th class = "col-detail">Task Name</th>
+        </tr>
         <tr>
-          <td class="col-dept"><span class="placeholder">{{ตัวย่อแผนก}}</span></td>
           <td class="col-task"><span class="placeholder">{{Task Workflow ID}}</span></td>
           <td class="col-detail"><span class="placeholder">{{รายละเอียดงาน (ชื่อ task)}}</span></td>
         </tr>
@@ -69,21 +61,6 @@
     <p>ขอบคุณค่ะ</p>
     <p>PTITeam</p>
     <br>
-    <div class="signature">
-      <p>
-        " The information transmitted herein may contain 
-        privileged or confidential information which is intended 
-        only for the use of the recipient(s) named above. If you have 
-        received this message in error, please notify the sender immediately 
-        by reply transmission and delete it from your system and destroy any printed copies. 
-        Any analyses, opinions or conclusions contained herein are not intended to and shall not 
-        create any binding effect to the Stock Exchange of Thailand, its subsidiaries and its affiliates 
-        unless the context expressly describes otherwise. E-mail transmissions cannot be guaranteed to be secure 
-        or error-free as information could be intercepted, corrupted, lost, destroyed, arrive late or incomplete, 
-        or contain viruses. All liability arising from or in connection with corrupted e-mails or viruses 
-        transmitted by this e-mail is excluded to the fullest extent permitted by law "
-      </p>
-    </div>
 
   </div>
 </div>

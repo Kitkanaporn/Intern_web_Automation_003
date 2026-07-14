@@ -2,60 +2,81 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UAT Email Template</title>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 13px; color: #000; background: #f0f0f0; margin: 0; padding: 24px; }
-  .email-container { max-width: 860px; margin: 0 auto; background: #fff; border: 1px solid #ccc; }
-  .email-meta { background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 14px 20px; }
-  .email-meta-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 12px; }
-  .email-meta-label { color: #666; min-width: 60px; font-weight: bold; }
-  .email-subject-line { font-size: 15px; font-weight: bold; margin-top: 10px; color: #000; }
-  .email-body { padding: 24px 28px; line-height: 1.8; }
-  .email-body p { margin: 0 0 4px 0; }
-  .recipient-review { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; font-size: 11.5px; }
-  .recipient-review .rr-title { font-weight: bold; color: #2E7D32; margin-bottom: 6px; font-size: 12px; }
-  .recipient-review .rr-email { color: #1a5c1a; line-height: 2; }
-  .cc-review { background: #FFF3E0; border: 1px solid #FFCC80; border-radius: 4px; padding: 10px 14px; margin-bottom: 18px; font-size: 11.5px; }
-  .cc-review .cc-title { font-weight: bold; color: #BF360C; margin-bottom: 6px; font-size: 12px; }
-  .cc-review .cc-email { color: #8D3900; line-height: 2; }
-  .signature { border-top: 1px solid #ccc; margin-top: 20px; padding-top: 12px; font-size: 12px; color: #333; line-height: 1.7; }
+
+/* ── Layout ──────────────────────────────────────────────────── */
+body         { font-family: Arial, sans-serif; font-size: 13px; color: #000; background: #f0f0f0; margin: 0; padding: 24px; }
+.email-wrap  { max-width: 860px; margin: 0 auto; background: #fff; border: 1px solid #ccc; }
+.email-body  { padding: 24px 28px; line-height: 1.8; }
+.email-body p { margin: 0 0 4px 0; }
+
+/* ── To / CC boxes ───────────────────────────────────────────── */
+.to-box  { background: #E8F5E9; border: 1px solid #A5D6A7; border-radius: 4px; padding: 10px 14px; margin-bottom: 8px;  font-size: 11.5px; }
+.cc-box  { background: #FFF3E0; border: 1px solid #FFCC80; border-radius: 4px; padding: 10px 14px; margin-bottom: 18px; font-size: 11.5px; }
+.box-title          { font-size: 12px; font-weight: bold; margin-bottom: 6px; }
+.to-box .box-title  { color: #2E7D32; }
+.cc-box .box-title  { color: #BF360C; }
+.to-box .box-emails { color: #1a5c1a; line-height: 2; }
+.cc-box .box-emails { color: #8D3900; line-height: 2; }
+
+/* ── UAT Table ───────────────────────────────────────────────── */
+.uat-table { border-collapse: collapse; width: 100%; font-size: 11px; margin: 12px 0; }
+
+/* Header */
+.uat-table th          { background: #e7beaa; color: #000; border: 1px solid #000; padding: 2px 10px; text-align: center; vertical-align: middle; }
+.uat-table .th-taskid  { width:  80px; }
+.uat-table .th-scope   { width: 175px; }
+.uat-table .th-qa      { width: 105px; }
+.uat-table .th-period  { width:  95px; }
+.uat-table .th-remark  { width: 175px; }
+.uat-table .th-svc     { width:  52px; font-size: 10px; }
+.uat-table .th-dist    { width:  52px; font-size: 10px; }
+
+/* Data cells */
+.uat-table td         { border: 1px solid #999; padding: 4px 6px; text-align: center; vertical-align: middle; }
+.uat-table .td-name   { text-align: left; }
+.uat-table .td-remark { text-align: left; vertical-align: top; }
+.uat-table .td-id     { color: #1F4E79; font-weight: bold; }
+.uat-table .td-check  { font-size: 13px; }
+
+/* Row states */
+.uat-table .tr-sep td { background: #D6E4F0; font-weight: bold; font-style: italic; border: 1px solid #999; text-align: center; }
+.uat-table .tr-new td { background: #FFFDE7; }
+
+/* ── Environment Table ───────────────────────────────────────── */
+.env-table           { border-collapse: collapse; width: 75%; font-size: 11px; margin: 12px 0; }
+.env-table .env-label { border: 1px solid #999; padding: 7px 10px; vertical-align: top; background: #F2F2F2; font-weight: bold; width: 185px; color: #222; }
+.env-table .env-value { border: 1px solid #999; padding: 7px 10px; vertical-align: top; color: #000; line-height: 1.8; }
+.env-table a          { color: #1a0dab; }
+
+/* ── Signature ───────────────────────────────────────────────── */
+.signature { border-top: 1px solid #ccc; margin-top: 20px; padding-top: 12px; font-size: 12px; color: #333; line-height: 1.7; }
+
 </style>
 </head>
 <body>
 
-<div class="email-container">
-
-  <!-- <div class="email-meta">
-    <div class="email-subject-line">
-      แจ้งกำหนดการทดสอบ UAT : CSD งาน CR ที่มี Tentative Live เดือน {{THAI_MONTH}} {{YEAR}}
-    </div>
-  </div> -->
-
+<div class="email-wrap">
   <div class="email-body">
 
-    <!-- Recipient Review Box — กล่องสีเขียว (inline style เพื่อ clipboard fidelity) -->
+    <!-- To Box (สีเขียว) -->
     <!-- {{RECIPIENT_REVIEW_BOX}} -->
     <!--
-    ตัวอย่าง HTML ที่ใส่แทน {{RECIPIENT_REVIEW_BOX}}:
-    <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:4px;padding:10px 14px;margin-bottom:8px;font-size:11.5px;">
-      <div style="font-weight:bold;color:#2E7D32;margin-bottom:6px;font-size:12px;">รายชื่อผู้รับที่ต้องส่งจริง (กรุณาตรวจสอบก่อน Forward)</div>
-      <div style="color:#1a5c1a;line-height:2;">
-        email1@set.or.th; email2@set.or.th; email3@set.or.th; email4@set.or.th; email5@set.or.th<br>
-        email6@set.or.th; email7@set.or.th<br>
-      </div>
+    ตัวอย่าง:
+    <div class="to-box">
+      <div class="box-title">รายชื่อผู้รับที่ต้องส่งจริง (กรุณาตรวจสอบก่อน Forward)</div>
+      <div class="box-emails">email1@set.or.th; email2@set.or.th</div>
     </div>
     -->
 
-    <!-- CC Review Box — กล่องสีส้ม (inline style เพื่อ clipboard fidelity) -->
+    <!-- CC Box (สีส้ม) -->
     <!-- {{CC_REVIEW_BOX}} -->
     <!--
-    ตัวอย่าง HTML ที่ใส่แทน {{CC_REVIEW_BOX}}:
-    <div style="background:#FFF3E0;border:1px solid #FFCC80;border-radius:4px;padding:10px 14px;margin-bottom:18px;font-size:11.5px;">
-      <div style="font-weight:bold;color:#BF360C;margin-bottom:6px;font-size:12px;">CC: Unit Group Mail (หน่วยที่มีงานใน window นี้)</div>
-      <div style="color:#8D3900;line-height:2;">
-        AccountServicesUnit@set.or.th; IssuerServicesUnit@set.or.th<br>
-      </div>
+    ตัวอย่าง:
+    <div class="cc-box">
+      <div class="box-title">CC: Unit Group Mail (หน่วยที่มีงานใน window นี้)</div>
+      <div class="box-emails">AccountServicesUnit@set.or.th; IssuerServicesUnit@set.or.th</div>
     </div>
     -->
 
@@ -67,53 +88,53 @@
     <p>ตามตารางด้านล่าง</p>
     <br>
 
-    <!-- UAT Table — ทุก style เป็น inline เพื่อ clipboard fidelity (ห้ามใช้ CSS class ใน table) -->
-    <!-- {{UAT_TABLE_ROWS}} = tbody rows ทั้งหมด (separator + ticket rows) ที่ Claude generate -->
-    <table style="border-collapse:collapse;width:100%;font-size:11px;margin:12px 0;">
+    <!-- UAT Table -->
+    <table class="uat-table">
       <thead>
         <tr>
-          <th rowspan="2" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:80px;">Task ID</th>
-          <th rowspan="2" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:130px;">ขอบเขตการทดสอบ</th>
-          <th colspan="6" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;">ผู้เข้าร่วมทดสอบ</th>
-          <th rowspan="2" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:105px;">Marketing QA</th>
-          <th rowspan="2" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:95px;">Test Period</th>
-          <th rowspan="2" style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:55px;">Remark</th>
+          <th rowspan="2" class="th-taskid">Task ID</th>
+          <th rowspan="2" class="th-scope">ขอบเขตการทดสอบ</th>
+          <th colspan="6">ผู้เข้าร่วมทดสอบ</th>
+          <th rowspan="2" class="th-qa">Marketing QA</th>
+          <th rowspan="2" class="th-period">Test Period</th>
+          <th rowspan="2" class="th-remark">Remark</th>
         </tr>
         <tr>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:42px;font-size:10px;">Account<br>service</th>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:42px;font-size:10px;">Counter<br>Service</th>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:42px;font-size:10px;">Issuer<br>Service</th>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:42px;font-size:10px;">Investor<br>Service</th>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:42px;font-size:10px;">CA<br>Service</th>
-          <th style="background:#e7beaa;color:#000;border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle;width:52px;font-size:10px;">Distribution<br>Service</th>
+          <th class="th-svc">Account<br>service</th>
+          <th class="th-svc">Counter<br>Service</th>
+          <th class="th-svc">Issuer<br>Service</th>
+          <th class="th-svc">Investor<br>Service</th>
+          <th class="th-svc">CA<br>Service</th>
+          <th class="th-dist">Distribution<br>Service</th>
         </tr>
       </thead>
       <tbody>
         {{UAT_TABLE_ROWS}}
         <!--
-        === ตัวอย่าง UAT_TABLE_ROWS สำหรับ 2 กลุ่ม Promote Date ===
+        === ตัวอย่าง UAT_TABLE_ROWS ===
 
-        Separator row (หนึ่งต่อ Promote Date month):
-        <tr>
-          <td colspan="11" style="background:#D6E4F0;font-weight:bold;font-style:italic;border:1px solid #999;padding:5px 8px;text-align:center;">
-            Tentative Live Date : June 2026
-          </td>
+        Separator row:
+        <tr class="tr-sep">
+          <td colspan="11">Tentative Live Date : June 2026</td>
         </tr>
 
-        Ticket row (notified = white):
+        Ticket row (notified):
         <tr>
-          <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;">CSD-409</td>
-          <td style="border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:middle;">ชื่องาน</td>
-          <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;font-size:13px;">✓</td>
+          <td class="td-id">CSD-409</td>
+          <td class="td-name">ชื่องาน</td>
+          <td class="td-check">✓</td>
+          <td></td><td></td><td></td><td></td><td></td>
+          <td>Marketing QA</td>
+          <td>UAT 22 - 26/06 2026</td>
+          <td class="td-remark">remark</td>
+        </tr>
+
+        Ticket row (unnotified = yellow):
+        <tr class="tr-new">
+          <td class="td-id">CSD-411</td>
+          <td class="td-name">ชื่องาน</td>
+          <td class="td-check">✓</td>
           ...
-          <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;font-size:10px;">UAT 26 - 30/06 2026</td>
-          <td style="border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top;"></td>
-        </tr>
-
-        Ticket row (unnotified = yellow — ทุก td ต้องมี background:#FFFDE7):
-        <tr>
-          <td style="border:1px solid #999;padding:4px 6px;text-align:center;vertical-align:middle;color:#1F4E79;font-weight:bold;background:#FFFDE7;">CSD-411</td>
-          ...ทุก td ต้องมี background:#FFFDE7;...
         </tr>
         -->
       </tbody>
@@ -121,37 +142,37 @@
 
     <br>
 
-    <!-- Environment Table — inline style ทุก cell -->
-    <table style="border-collapse:collapse;width:100%;font-size:11px;margin:12px 0;">
+    <!-- Environment Table -->
+    <table class="env-table">
       <tbody>
         <tr>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;background:#F2F2F2;font-weight:bold;width:185px;color:#222;">Application Date</td>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;color:#000;line-height:1.8;">=== วันที่ทำรายการ (Application Date) ขอให้ผู้ทดสอบสังเกตุวันที่จากมุมบนซ้าย ===</td>
+          <td class="env-label">Application Date</td>
+          <td class="env-value">=== วันที่ทำรายการ (Application Date) ขอให้ผู้ทดสอบสังเกตุวันที่จากมุมบนซ้าย ===</td>
         </tr>
         <tr>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;background:#F2F2F2;font-weight:bold;width:185px;color:#222;">Login Name / Password /<br>ข้อมูลที่ใช้ทดสอบ</td>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;color:#000;line-height:1.8;">ข้อมูลบน UAT / IWT</td>
+          <td class="env-label">Login Name / Password /<br>ข้อมูลที่ใช้ทดสอบ</td>
+          <td class="env-value">ข้อมูลบน UAT / IWT</td>
         </tr>
         <tr>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;background:#F2F2F2;font-weight:bold;width:185px;color:#222;">การสรุปผลการทดสอบ</td>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;color:#000;line-height:1.8;">แจ้งสรุปผลการทดสอบทางเมลล์และ workflow เพื่อดำเนินการในขั้นตอนต่างๆ ของการ Deploy งานต่อไป และขอให้แนบไฟล์ผลการทดสอบด้วย (ช่อง Form 8 ใน workflow)</td>
+          <td class="env-label">การสรุปผลการทดสอบ</td>
+          <td class="env-value">แจ้งสรุปผลการทดสอบทางเมลล์และ workflow เพื่อดำเนินการในขั้นตอนต่างๆ ของการ Deploy งานต่อไป และขอให้แนบไฟล์ผลการทดสอบด้วย (ช่อง Form 8 ใน workflow)</td>
         </tr>
         <tr>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;background:#F2F2F2;font-weight:bold;width:185px;color:#222;">ผู้ประสานงาน IT</td>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;color:#000;line-height:1.8;">CSD : มาเรีย (9211), นารีมล (9208), ประภาศิริ (9217), ภาณุคม (9218)</td>
+          <td class="env-label">ผู้ประสานงาน IT</td>
+          <td class="env-value">CSD : มาเรีย (9211), นารีมล (9208), ประภาศิริ (9217), ภาณุคม (9218)</td>
         </tr>
         <tr>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;background:#F2F2F2;font-weight:bold;width:185px;color:#222;">URL ระบบ</td>
-          <td style="border:1px solid #999;padding:7px 10px;vertical-align:top;color:#000;line-height:2;">
+          <td class="env-label">URL ระบบ</td>
+          <td class="env-value" style="line-height:2;">
             <strong>UAT Env.</strong><br>
-            &nbsp;&nbsp;CSD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8594; <a href="https://tsduat.thaicsd.set/CSD" style="color:#1a0dab;">https://tsduat.thaicsd.set/CSD</a><br>
-            &nbsp;&nbsp;CSD Refresh &nbsp;&nbsp;&#8594; <a href="https://uat.thaicsd.set/PTI/main/start.do" style="color:#1a0dab;">https://uat.thaicsd.set/PTI/main/start.do</a><br>
-            &nbsp;&nbsp;Other Registrar &#8594; <a href="https://portaluat.thaicsd.com/OR/" style="color:#1a0dab;">https://portaluat.thaicsd.com/OR/</a><br>
+            &nbsp;&nbsp;CSD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8594; <a href="https://tsduat.thaicsd.set/CSD">https://tsduat.thaicsd.set/CSD</a><br>
+            &nbsp;&nbsp;CSD Refresh &nbsp;&nbsp;&#8594; <a href="https://uat.thaicsd.set/PTI/main/start.do">https://uat.thaicsd.set/PTI/main/start.do</a><br>
+            &nbsp;&nbsp;Other Registrar &#8594; <a href="https://portaluat.thaicsd.com/OR/">https://portaluat.thaicsd.com/OR/</a><br>
             <br>
             <strong>IWT Env.</strong><br>
-            &nbsp;&nbsp;CSD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8594; <a href="https://iwt.thaicsd.set/PTI/main/start.do" style="color:#1a0dab;">https://iwt.thaicsd.set/PTI/main/start.do</a><br>
-            &nbsp;&nbsp;CSD Refresh &nbsp;&nbsp;&#8594; <a href="https://tsdiwt.thaicsd.set/CSD" style="color:#1a0dab;">https://tsdiwt.thaicsd.set/CSD</a><br>
-            &nbsp;&nbsp;Other Registrar &#8594; <a href="https://portaliwt.thaicsd.com/OR/" style="color:#1a0dab;">https://portaliwt.thaicsd.com/OR/</a>
+            &nbsp;&nbsp;CSD &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#8594; <a href="https://iwt.thaicsd.set/PTI/main/start.do">https://iwt.thaicsd.set/PTI/main/start.do</a><br>
+            &nbsp;&nbsp;CSD Refresh &nbsp;&nbsp;&#8594; <a href="https://tsdiwt.thaicsd.set/CSD">https://tsdiwt.thaicsd.set/CSD</a><br>
+            &nbsp;&nbsp;Other Registrar &#8594; <a href="https://portaliwt.thaicsd.com/OR/">https://portaliwt.thaicsd.com/OR/</a>
           </td>
         </tr>
       </tbody>
@@ -176,40 +197,25 @@
 
 {{SENDER_EMAIL}}            — email ผู้ส่ง
 {{SENDER_NAME}}             — ชื่อผู้ส่ง
-{{SENDER_PHONE}}            — เบอร์โทร เช่น (66) 2009-9208  (จาก shared_config.yaml)
-{{THAI_MONTH}}              — เดือนภาษาไทย ของ unnotified tickets (ทุก Promote Date month)
-                              1 เดือน: "ส.ค. 2026" | 2 เดือน: "มิ.ย. และ ส.ค. 2026"
-                              3+ เดือน: "มิ.ย., ส.ค. และ ต.ค. 2026"
+{{SENDER_PHONE}}            — เบอร์โทร เช่น (66) 2009-9208
+{{THAI_MONTH}}              — เดือนภาษาไทย เช่น "ส.ค. 2026" หรือ "มิ.ย. และ ส.ค. 2026"
 {{YEAR}}                    — ปี ค.ศ. เช่น 2026
 
-{{RECIPIENT_EMAIL}}         — email ผู้รับทั้งหมด คั่นด้วย ; (semicolon) สำหรับ email meta header
-{{CC_EMAILS}}               — email CC ทั้งหมด คั่นด้วย ; (semicolon) สำหรับ email meta header
+{{RECIPIENT_REVIEW_BOX}}    — div.to-box (กล่องสีเขียว — member emails)
+{{CC_REVIEW_BOX}}           — div.cc-box (กล่องสีส้ม — Group Mail + CC_EMAIL)
 
-{{RECIPIENT_REVIEW_BOX}}    — HTML กล่องสีเขียว (ถึง — member emails)
-{{CC_REVIEW_BOX}}           — HTML กล่องสีส้ม (สำเนา — Group Mail)
-
-{{UNNOTIFIED_TICKET_LINES}} — แถว <p> ต่อ unnotified ticket
-{{UAT_TABLE_ROWS}}          — tbody rows ตาม promote_groups (separator + ticket rows)
+{{UNNOTIFIED_TICKET_LINES}} — <p style="margin-left:20px;">...</p> ต่อ unnotified ticket
+{{UAT_TABLE_ROWS}}          — tbody rows ใช้ class ตามนี้:
+                              separator  → <tr class="tr-sep"><td colspan="11">...</td></tr>
+                              notified   → <tr>
+                              unnotified → <tr class="tr-new">
 
 ต่อ ticket row:
-{{WORKFLOW_TASK_ID}}        — IT Workflow Task ID (fallback = JIRA key)
-{{SUMMARY}}                 — ชื่องาน (ตัด prefix [xxx] ออก)
-{{SVC_ACCOUNT}}             — ✓ หรือ ☐  (customfield_19036)
-{{SVC_COUNTER}}             — ✓ หรือ ☐  (customfield_19037)
-{{SVC_ISSUER}}              — ✓ หรือ ☐  (customfield_19039)
-{{SVC_INVESTOR}}            — ✓ หรือ ☐  (customfield_19040)
-{{SVC_CA}}                  — ✓ หรือ ☐  (customfield_19041 / CA Service Unit)
-{{SVC_DISTRIBUTION}}        — ✓ หรือ ☐  (customfield_19042 / Distribution Unit)
-{{MARKETING_QA_NAMES}}      — ชื่อ QA คั่นด้วย ,
-{{START_DD}}                — same-month: "22" | cross-month: "30/06"
-{{END_DD_MM}}               — เช่น "26/06", "02/07"
-
-Row styling — ใช้ inline style ทุก td:
-  notified   → white (ไม่มี background)
-  unnotified → background:#FFFDE7; ทุก td
-
-Timing rule:
-  รัน JQL เมื่อมี ticket ที่ UAT Start อยู่ภายใน 5 วันข้างหน้า หรือ UAT อยู่ระหว่าง period
+  td.td-id     — Workflow Task ID (สีน้ำเงิน, bold)
+  td.td-name   — ชื่องาน (ตัด prefix [xxx] ออก) — left-align
+  td.td-check  — ✓ หรือ ว่าง
+  td.td-remark — Remark — left-align, top
+  td           — (ปกติ) center-align สำหรับ QA, Test Period, service columns
 -->
 
 </body>

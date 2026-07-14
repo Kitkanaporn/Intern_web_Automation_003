@@ -10,9 +10,10 @@
 
 เมื่อผู้ใช้ขอให้รัน Promote Notification:
 
-1. อ่าน `SKILL.md` — logic หลักทุก Phase
-2. อ่าน `shared_config.yaml` และ `project_config.yaml`
-3. รันตาม Phase ใน SKILL.md ตามลำดับ
+1. อ่าน `instructions/SETUP.md` — logic Phase Setup
+2. อ่าน `SKILL.md` — logic Phase 0–6
+3. อ่าน `shared_config.yaml` และ `project/project_config.yaml`
+4. รันตาม Phase ตามลำดับ
 
 ---
 
@@ -20,17 +21,17 @@
 
 ```
 📁 Promote-Notification/             ← root folder (ชี้ Cowork มาที่นี่)
-├── AGENT.md                          ← ไฟล์นี้
-├── SKILL.md                          ← logic หลัก (Setup + Phase 0–6)
+├── SKILL.md                          ← logic Phase 0–6
 ├── shared_config.yaml                ← email, schedule — ใช้ร่วมทุก project
 ├── Map_User_Email.xlsx               ← รายชื่อ member + email
 ├── Promote_Template_Email.html       ← template email
 │
-├── 📁 CSD/
-│   └── project_config.yaml           ← jira fields เฉพาะ CSD
+├── 📁 instructions/                  ← คู่มือและ config setup
+│   ├── AGENT.md                      ← ไฟล์นี้
+│   └── SETUP.md                      ← logic Phase Setup (รันครั้งแรกเท่านั้น)
 │
-└── 📁 [ProjectB]/                    ← เพิ่ม project ใหม่ได้เลย
-    └── project_config.yaml
+└── 📁 project/
+    └── project_config.yaml           ← jira fields ของ project ที่เลือกตอน Setup
 ```
 
 ---
@@ -49,7 +50,7 @@
 | **Map_User_Email.xlsx** อยู่ใน root | sheet ชื่อ `map`, คอลัมน์: Group / Group Mail / Member / Member Mail |
 | **Promote_Template_Email.html** อยู่ใน root | ห้ามแก้โครงสร้าง HTML |
 | **shared_config.yaml** | Claude ถามและกรอกให้อัตโนมัติครั้งแรก |
-| **project_config.yaml** | Claude detect จาก Jira และสร้างให้อัตโนมัติ |
+| **project/project_config.yaml** | Claude detect จาก Jira และสร้างให้อัตโนมัติ |
 
 ---
 
@@ -57,7 +58,7 @@
 
 - **Summary Table** — แสดงทุก Epic ใน window พร้อมสถานะ (🟡 ยังไม่แจ้ง / ✓ แจ้งแล้ว)
 - **Email Card** — หัวข้อ + เนื้อหา พร้อมกรอบ To / CC และปุ่ม Copy แยกตาม Promote Date ไม่ได้ทำออกมาเป็นไฟล์ แต่จะแสดงบนหน้าของ claude เพื่อง่ายในการทำงาน
-- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (ต้อง confirm ก่อน)
+- **Comment Jira** — "Promote Notification Complete" บน ticket ที่ยังไม่แจ้ง (เมื่อผู้ใช้กด Complete Process button)
 - **สรุปผล** — แสดงจำนวน ticket ที่แจ้งแล้วท้าย card เสมอ
 
 ---
@@ -69,19 +70,20 @@
 - **แยก card ตาม Promote Date** — ถ้ามีหลายวันจะได้หลาย card set
 
 ---
- 
+
 ## สิ่งที่ห้ามทำเด็ดขาด
- 
+
 - **ห้ามแก้ไขไฟล์ใดๆ** ในโฟลเดอร์นี้โดยไม่ได้รับอนุญาต ยกเว้น config ที่ต้องกรอกตอน Setup
 - **ห้ามสร้าง HTML ใหม่เอง** — ต้อง replace placeholder ใน template เท่านั้น
 - **ห้ามใช้ข้อมูลจาก session ก่อน** — ต้องดึงจาก Jira และอ่านไฟล์ใหม่ทุกครั้ง
 - **ห้าม post comment Jira** โดยไม่ได้รับ confirm จากผู้ใช้ก่อน
 - **ห้ามส่ง email จริง** — แสดง draft บนหน้าจอ Claude เท่านั้น ผู้ใช้ forward เอง
 - **ห้ามสร้างไฟล์ output** — แสดงผลบนหน้าจอ Claude เท่านั้น
+
 ---
- 
+
 ## การจัดการเมื่อเกิดปัญหา
- 
+
 | ปัญหา | สิ่งที่ต้องทำ |
 |---|---|
 | หาไฟล์ไม่เจอ (xlsx, html, yaml) | หยุดทันที แจ้งชื่อไฟล์ที่หายไป อย่ารันต่อ |
@@ -90,6 +92,3 @@
 | config ไม่ครบ | รัน Phase Setup ก่อน ไม่รัน Phase อื่นต่อ |
 | Match email ไม่ได้บาง field | แจ้ง warning แต่รันต่อด้วย field ที่ match ได้ |
 | Post comment ล้มเหลวบาง ticket | แจ้ง ticket ที่ล้มเหลว แต่รันต่อด้วย ticket อื่น |
- 
----
- 

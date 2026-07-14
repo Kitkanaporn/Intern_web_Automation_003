@@ -19,15 +19,11 @@ schedule:
 
 # --- Identity information --------------------------------------
 email :
-  # sender_email: ""    #email ของผู้ส่ง (ต้องเป็น email ขององค์กรเท่านั้น) — Claude จะถามและกรอกให้อัตโนมัติ
-  # sender_name:  ""    #ชื่อของผู้ส่ง
-  # sender_phone: ""    #เบอร์โทรศัพท์ของผู้ส่ง หรือ องค์กร
-  # sender_dept:  "Depository & Registrar Systems Dept."
-  # sender_org:   "The Stock Exchange of Thailand"
-
-  # Draft จะส่งถึง email นี้เท่านั้น เพื่อตรวจสอบก่อน Forward
-  draft_to: ""
-
-  # Email เหล่านี้จะไม่ถูกรวมในรายชื่อผู้รับจริง
   exclude_recipients:
     - ""
+
+cc_email:
+  - "sebear@set.or.th"
+  - "CHAYAJAREE@set.or.th"
+  - "ITClientServiceUnit@set.or.th"
+  - "DepositoryandRegistrarSystemsDepartment@set.or.th"

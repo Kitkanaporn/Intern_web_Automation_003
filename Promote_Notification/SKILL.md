@@ -6,9 +6,9 @@
 
 ## ⛔ กฎห้ามฝ่าฝืนเด็ดขาด ⛔
 
-1. ต้องอ่าน `AGENT.md` และ `SKILL.md` ให้เข้าใจก่อนรันทุกครั้ง
+1. ต้องอ่าน `instructions/AGENT.md` และ `SKILL.md` ให้เข้าใจก่อนรันทุกครั้ง
 2. ต้องดึงข้อมูลใหม่จาก Jira ก่อนรันทุกครั้ง — ห้ามใช้ข้อมูล ticket จาก session ก่อน
-3. ต้องอ่าน `shared_config.yaml` และ `project_config.yaml` ก่อนรันทุกครั้ง
+3. ต้องอ่าน `shared_config.yaml` และ `project/project_config.yaml` ก่อนรันทุกครั้ง
 4. ห้ามแก้ไขไฟล์ใดๆ ในโฟลเดอร์นี้โดยไม่ได้รับอนุญาตจากผู้ดูแลระบบ
 5. ห้ามสร้างโครงสร้าง HTML ขึ้นมาใหม่เอง — ต้องอ่าน `Promote_Template_Email.html` ทุกครั้ง และ replace placeholder เท่านั้น โดยเอา template มาใช้เลย
 6. ห้ามใช้รายชื่อ/email จาก session ก่อน — ต้องอ่าน `Map_User_Email.xlsx` ใหม่ทุกครั้ง
@@ -22,143 +22,13 @@
 ```
 [ทุกครั้งที่รัน]
        ↓
- Phase Setup ──── draft_to ใน shared_config มีค่าแล้วไหม? ──→ มีแล้ว → Phase 0
-       │ (ยังว่าง)
-       ↓
-  Setup 1 ตรวจ config
-  Setup 2 ถาม draft_to
-  Setup 3 Auto-detect Jira site
-  Setup 4 Auto-detect Project + Fields
-  Setup 5 แก้ไข config อัตโนมัติ
-  Setup 6 ยืนยัน + เริ่มใช้งาน
+ Phase Setup ──── มี field ที่ tag #importance ว่างอยู่ไหม? ──→ ไม่มี → Phase 0
+       │ (มีว่าง)                                  (ดู instructions/SETUP.md)
        ↓
  Phase 0 → Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 ```
 
----
-
-## PHASE SETUP — กรอก Config ครั้งแรก (รันครั้งเดียว)
-
-> รันเฉพาะตอนที่ config ยังไม่ครบ หลังจากนั้น Claude จะข้ามไป Phase 0 เสมอ
->
-> **หลักการ: ถามผู้ใช้เฉพาะสิ่งที่ Claude ไม่มีทางรู้ — ข้อมูลที่ดึงจาก Jira API ได้ ไม่ถาม**
-
----
-
-### Setup 1 — ตรวจสอบความครบถ้วนของ Config
-
-1. อ่าน `shared_config.yaml`
-2. ตรวจว่า `draft_to` มีค่าแล้วหรือยัง:
-   - **มีค่าแล้ว** → ข้าม Setup ทั้งหมด ไป **Phase 0** ทันที
-   - **ยังว่างอยู่** → เริ่ม Setup 2
-
----
-
-### Setup 2 — ถามข้อมูลที่ยังว่างอยู่
-
-ถามเฉพาะช่องที่ยังว่าง:
-
-| ช่อง | คำถาม | เงื่อนไข |
-|---|---|---|
-| `draft_to` | "Email สำหรับรับ Draft ก่อน Forward จริง?" | ต้องเป็น `@set.or.th` |
-
-**หลังตอบครบ** → เขียนค่าลง `shared_config.yaml` ทันที แล้วไป Setup 3
-
----
-
-### Setup 3 — Auto-detect Jira Site (ไม่ถาม)
-
-เรียก `getAccessibleAtlassianResources`:
-- **มี site เดียว** → บันทึก `cloud_id` และ `base_url` ลง `project_config.yaml` อัตโนมัติ ไม่ถาม
-- **มีหลาย site** → แสดงรายการให้ผู้ใช้เลือก 1 site แล้วบันทึก
-
----
-
-### Setup 4 — เลือก Project และ Auto-detect Fields
-
-**4A — เลือก Project**
-
-เรียก `getVisibleJiraProjects` → ได้รายการ project ทั้งหมด
-
-- **มี project เดียว** → ใช้อัตโนมัติ ไม่ถาม
-- **มีหลาย project** → แสดงรายการให้เลือก:
-  ```
-  พบ {N} projects — เลือก project ที่ต้องการตั้งค่า:
-  1. CSD — DRS-CSD
-  2. ABC — Project ABC
-  ```
-
----
-
-**4B — Auto-detect Promote & Workflow fields**
-
-เรียก `searchJiraIssuesUsingJql` ด้วย `fields: ["*all"], expand: "names", maxResults: 3`
-แล้ววิเคราะห์ `names` จาก response:
-
-| ค้นหา | keyword | ผลถ้าเจอ | ผลถ้าไม่เจอ |
-|---|---|---|---|
-| `promote_date` | "Promote" หรือ "Live Date" | บันทึกอัตโนมัติ ไม่ถาม | แสดง date fields ทั้งหมดให้เลือก |
-| `workflow_task_id` | "Workflow" หรือ "Task ID" | บันทึกอัตโนมัติ ไม่ถาม | แสดง text fields ทั้งหมดให้เลือก |
-
----
-
-**4C — Auto-detect Service fields (สำหรับหา To/CC email)**
-
-ใช้ `names` response เดิมจาก 4B ไม่ต้องเรียก API ใหม่:
-
-1. **กรอง** field ที่ชื่อลงท้ายด้วย "Unit", "Service", หรือ "Services"
-2. **Match กับ Excel** — เอาชื่อ field ไป match กับคอลัมน์ `Group` ใน `Map_User_Email.xlsx` (case-insensitive) เพื่อยืนยันว่า field นั้นมีรายชื่อคนใน Excel จริง
-3. **บันทึก** เฉพาะ field ที่ match ได้ลง `project_config.yaml` เป็น `service_fields`:
-
-   ```yaml
-   service_fields:
-     - "customfield_19036"   # Account Services Unit
-     - "customfield_19037"   # Counter Services Unit
-     - "customfield_19041"   # CA Service Unit
-   ```
-
-4. **ถ้า match ไม่ได้เลย** → แสดง fields ทั้งหมดให้ผู้ใช้เลือกเองว่า field ไหนคือฝ่ายที่เกี่ยวข้อง
-
-> `service_fields` ใช้ใน Phase 3 สำหรับ map To/CC email เท่านั้น — ไม่แสดงเป็นคอลัมน์ในตาราง email
-
----
-
-บันทึกทุกค่าลง `{project_key}/project_config.yaml` พร้อมเพิ่ม `promote_window_days: 3` (default)
-
-> ต้องการเพิ่ม project อื่น → รันใหม่อีกครั้ง เลือก project อื่น
-
----
-
-### Setup 5 — แก้ไข Config อัตโนมัติ
-
-ดำเนินการโดยไม่ต้องถาม:
-
-1. **แก้ typo** `workflow_task)id` → `workflow_task_id` ถ้าพบ
-2. **แก้** `jira_comment.text` → `"Promote Notification Complete"` ถ้ายังเป็น UAT
-3. **บันทึก** ทุกการแก้ไขลงไฟล์ทันที
-
----
-
-### Setup 6 — ยืนยันและเริ่มใช้งาน
-
-1. แสดง **Summary** ค่าทั้งหมดที่ได้มา (ทั้งที่ถามและที่ดึง API):
-
-   ```
-   ✦ shared_config
-     draft_to : xxx@set.or.th
-
-   ✦ project_config (CSD)
-     cloud_id         : 6732a23f-...
-     promote_date     : customfield_10854
-     workflow_task_id : customfield_10653
-     service_fields   : customfield_19036, customfield_19037, ...
-     window           : 3 วัน
-   ```
-
-2. ถาม: "ข้อมูลถูกต้องไหม? พิมพ์ **ใช่** เพื่อเริ่มใช้งาน หรือบอกช่องที่ต้องการแก้"
-   - แก้ → กลับไปถามช่องนั้น แล้วกลับมา Setup 6
-   - ใช่ → บันทึกทุกไฟล์ แจ้ง "✓ Setup เสร็จแล้ว"
-3. **รัน Phase 0 ต่อทันที** ไม่ต้องรอ
+> **Phase Setup** — ดู `instructions/SETUP.md` (รันเฉพาะครั้งแรกที่ config ยังว่าง)
 
 ---
 
@@ -166,8 +36,19 @@
 
 > โหลด config และข้อมูลทั้งหมดเข้าหน่วยความจำ ทำครั้งเดียวต่อการรัน
 
-1. อ่าน `shared_config.yaml` → เก็บ: draft_to, jira_comment text, exclude_recipients
-2. อ่าน `project_config.yaml` ทุกไฟล์ใน subfolder → เก็บ: cloud_id, project_key, customfield IDs, promote_window_days, service_fields
+**0A — Pre-flight: ตรวจสอบการเชื่อมต่อ Jira (ทำก่อนทุกอย่าง)**
+
+เรียก `getAccessibleAtlassianResources`:
+- **สำเร็จ** → ดำเนินการต่อ
+- **ล้มเหลว / ไม่มี resource** → หยุดทันที แจ้ง:
+  ```
+  ❌ เชื่อมต่อ Jira ไม่ได้ — กรุณาตรวจสอบที่ Settings → Connections → Atlassian แล้วลองใหม่อีกครั้ง
+  ```
+
+**0B — โหลดไฟล์และ config**
+
+1. อ่าน `shared_config.yaml` → เก็บ: jira_comment text, cc_email, exclude_recipients
+2. อ่าน `project/project_config.yaml` → เก็บ: cloud_id, project_key, customfield IDs, promote_window_days, service_fields
 3. โหลด `Map_User_Email.xlsx` sheet `map` → สร้าง lookup table:
    ```
    Group (fill-down) → { group_mail, members: [ { name, email } ] }
@@ -176,7 +57,29 @@
 
 **Edge cases:**
 - ถ้าหาไฟล์ไม่เจอ → หยุดทันที แจ้งชื่อไฟล์ที่หายไปชัดเจน
-- ถ้า shared_config มีช่องว่างที่บังคับ → แจ้งให้รัน Setup ก่อน
+- ถ้ามี field #importance ว่างอยู่ → หยุดทันที แจ้งให้รัน Setup ก่อน
+
+---
+
+**0C — ตรวจ required fields ก่อน Phase 1**
+
+อ่าน `project/project_config.yaml` เป็น raw text — ตรวจทุก field ใน `jira.fields.*` และ `jira.service_fields[]`
+
+**เฉพาะ field ที่ว่างเท่านั้น** (ว่าง = `""`, `''`, หรือไม่มีค่า) → auto-detect ก่อนดำเนินการต่อ:
+
+1. เรียก `getJiraIssueTypeMetaWithFields` เพื่อดึง field names ทั้งหมดของ project
+2. ใช้ keyword matching ตาม `instructions/SETUP.md` 4B เพื่อหา customfield ID
+3. เขียนค่ากลับลง `project/project_config.yaml` ทันที
+4. แจ้งผู้ใช้ว่า auto-detect ได้ค่าอะไรบ้าง
+
+**ถ้ามีค่าอยู่แล้ว → ข้ามไปเลย ไม่ต้องเรียก API**
+
+| กลุ่ม | Fields | วิธีจัดการเมื่อว่าง |
+|---|---|---|
+| **Auto-detect จาก Jira** | `jira.cloud_id`, `jira.base_url`, `jira.project_key`, `jira.fields.*` ทุกตัว, `jira.service_fields[].jira_field` | detect → เขียนลง config → ดำเนินการต่อ |
+| **Validate structure** | `jira.service_fields[]` — ทุก entry ต้องมี `jira_field` และ `table_column` ครบ | ถ้าไม่ครบ → แจ้ง warning แต่รันต่อ |
+
+> ห้ามข้ามขั้นตอนนี้ — ถ้า `jira.fields.*` ตัวไหนว่าง ต้อง detect และ save ก่อน Phase 1 เสมอ
 
 ---
 
@@ -190,11 +93,13 @@ today      = วันที่รัน
 window_end = today + promote_window_days (จาก project_config, default = 3)
 ```
 
+> วันนี้ไม่นับ — ถ้า Promote Date = today ถือว่า promote แล้ว ไม่ต้องแจ้ง
+
 **JQL:**
 ```
 project = {project_key}
 AND issuetype = Epic
-AND cf[{promote_date_field}] >= "{today}"
+AND cf[{promote_date_field}] > "{today}"
 AND cf[{promote_date_field}] <= "{window_end}"
 ORDER BY cf[{promote_date_field}] ASC
 ```
@@ -221,6 +126,22 @@ promote_date → [ { epic_key, workflow_task_id, summary } ]
 
 > เช็คแต่ละ ticket ว่าเคยแจ้งแล้วหรือยัง
 
+**เกณฑ์ตัดสิน "แจ้งแล้ว":**
+
+comment ที่นับว่า "แจ้งแล้ว" ต้องผ่านเงื่อนไข **ทั้งสอง** ข้อ:
+1. มี comment ข้อความ `"Promote Notification Complete"` อยู่บน ticket
+2. comment นั้นถูก post **ก่อนวันนี้** (created date < today)
+
+> **Re-run same day:** ถ้า comment ถูก post วันเดียวกับที่รัน (created date = today) → ถือว่า **ยังไม่แจ้ง** เพื่อให้รันซ้ำในวันเดียวกันได้ผลลัพธ์เหมือนกันทุกครั้ง
+
+สรุปตรรกะ:
+
+| มี comment? | วันที่ post comment | สถานะ |
+|---|---|---|
+| ไม่มี | — | 🟡 ยังไม่แจ้ง |
+| มี | = today (re-run) | 🟡 ยังไม่แจ้ง |
+| มี | < today | ✓ แจ้งแล้ว |
+
 สำหรับแต่ละ Epic ที่ได้จาก Phase 1:
 
 1. แสดง **Summary Table** ก่อนดำเนินการต่อ:
@@ -230,7 +151,7 @@ promote_date → [ { epic_key, workflow_task_id, summary } ]
    | ชื่อ Epic | WF-XXXXX | วันที่ | 🟡 ยังไม่แจ้ง / ✓ แจ้งแล้ว |
 
 **Edge cases:**
-- ทุก ticket แจ้งครบหมดแล้ว → แจ้ง "แจ้งครบทุก Epic ใน window แล้ว" แล้วหยุด
+- ทุก ticket แจ้งครบหมดแล้ว (ทุกอันเป็น ✓ และ comment date < today) → แจ้ง "แจ้งครบทุก Epic ใน window แล้ว" แล้วหยุด
 - **สำคัญ**: Recipients ใน email ต้องรวมจาก **ทุก ticket** ใน window (ทั้ง NOTIFIED + UNNOTIFIED) แล้วค่อย deduplicate
 
 ---
@@ -249,10 +170,10 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 
 สำหรับแต่ละ Epic ใน window (รวมทั้ง NOTIFIED):
 
-1. ดึงค่าจาก `service_fields` ทุกตัวใน `project_config.yaml` โดยต้องการแบ่งออกมาตามวันที่ promote เพราะไม่ได้ส่งเหมือนกันหากต้องส่งมากกว่า 1 card
+1. ดึงค่าจาก `service_fields` ทุกตัวใน `project/project_config.yaml` — แบ่ง recipient ตาม Promote Date เพราะแต่ละวันส่ง email แยกกัน
 2. Match display name ของแต่ละ field กับคอลัมน์ `Group` ใน Excel (case-insensitive)
 3. ผลลัพธ์ต่อ Group ที่ match:
-   - **CC** = Group Mail ของกลุ่มนั้น (คั่นด้วย `;`)
+   - **Recipients (To)** = Group Mail ของกลุ่มนั้น (คั่นด้วย `;`)
 4. รวม recipient จากทุก Epic และทุก service field แล้ว **deduplicate**
 5. ลบ email ที่อยู่ใน `exclude_recipients` ออกทุกครั้ง
 
@@ -265,11 +186,11 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 5. ถ้าไม่มีเลย → fallback = Jira key (เช่น `CSD-215`)
 
 **VERSION:**
-- ให้ผู้ใช้ใส่เอง — default แสดงเป็น `xxx` ไว้ก่อน ไม่ดึงจาก Epic อัตโนมัติ
+- ให้ผู้ใช้ใส่เอง — default แสดงเป็น `x.x.x` ไว้ก่อน ไม่ดึงจาก Epic อัตโนมัติ
 
 **วันที่ Promote:**
-- แปลง Promote Date เป็นภาษาไทย เช่น `24/06/2026` → `"วันพุธที่ 24 มิถุนายน 2026"`
-- ใช้ปีคริสตศักราช (ไม่ใช่พุทธศักราช)
+- แปลง Promote Date เป็นภาษาไทย เช่น `24/06/2026` → `"วันพุธที่ 24 มิถุนายน 2569"`
+- ใช้ปีพุทธศักราช (ค.ศ. + 543) เช่น 2026 → 2569
 
 **Edge cases:**
 - `service_fields` ว่างเปล่าใน config → แจ้ง warning ให้รัน Setup 4C ใหม่ แล้วหยุด
@@ -293,14 +214,14 @@ group_mail    = { "Account Services Unit": "AccountServicesUnit@set.or.th", ... 
 [Card set 2] — Promote 25/06/2026  (3 งาน)
 ```
 
-แต่ละ card set ประกอบด้วย **2 card**:
+แต่ละ card set ประกอบด้วย **4 card**:
 
 ---
 
 ### Card 1 — หัวข้อ (Subject Line)
 
 ```
-แจ้ง Promote ระบบ CSD/Subscription Version {VERSION} วันที่ {วัน/วันที่/เดือน/ปี ภาษาไทย}
+แจ้งโปรโมทระบบ CSD ณ {วัน/วันที่/เดือน/ปี ภาษาไทย}
 ```
 
 พร้อมปุ่ม **Copy** (plain text)
@@ -339,32 +260,60 @@ render จาก `Promote_Template_Email.html` โดยแทน placeholder:
 
 | Placeholder | ค่าที่แทน |
 |---|---|
-| `{{วัน/วันที่/เดือน/ปี}}` | Promote Date จาก Jira — format ภาษาไทย เช่น "วันพุธที่ 24 มิถุนายน 2026" ปีคริสตศักราช |
+| `{{วัน/วันที่/เดือน/ปี}}` | Promote Date จาก Jira — format ภาษาไทย **ใช้ปีพุทธศักราช** เช่น "วันพุธที่ 24 มิถุนายน 2569" |
 | `{{email of department}}` | Group Mail รวมทุก Unit ที่ service field มีค่า คั่นด้วย `;` |
-| `{{Task Workflow ID}}` | Workflow Task ID ที่ extract ได้จาก Phase 3 |
-| `{{รายละเอียดงาน (ชื่อ task)}}` | ชื่อ Epic โดยตัดส่วน `[***]` ที่อยู่หน้าชื่อออก |
+
+**ตาราง Promote (สำคัญ — หลาย Epic = หลายแถว):**
+
+template มี `<tr>` แค่แถวเดียว — ถ้ามีหลาย Epic ในวันเดียวกัน ให้ **duplicate `<tr>` ให้ครบทุก Epic** (ทั้ง NOTIFIED + UNNOTIFIED) โดยแต่ละแถวประกอบด้วย:
+
+| Column | ค่า |
+|---|---|
+| `{{Task Workflow ID}}` | Workflow Task ID ของ Epic นั้น (extract จาก Phase 3) |
+| `{{รายละเอียดงาน (ชื่อ task)}}` | ชื่อ Epic นั้น โดยตัดส่วน `[***]` ที่อยู่หน้าชื่อออก |
+
+ตัวอย่างกรณี 3 Epic วันเดียวกัน:
+```html
+<tr>
+  <td class="col-task">WF-10001</td>
+  <td class="col-detail">ระบบสมาชิกออนไลน์ - ปรับปรุง Login</td>
+</tr>
+<tr>
+  <td class="col-task">WF-10002</td>
+  <td class="col-detail">ระบบ Report รายวัน</td>
+</tr>
+<tr>
+  <td class="col-task">CSD-103</td>
+  <td class="col-detail">ระบบแจ้งเตือน Push Notification</td>
+</tr>
+```
 
 **ผู้ใช้ใส่เองก่อน Forward จริง:**
 
 | Placeholder | หมายเหตุ |
 |---|---|
-| `{{VERSION}}` | แสดง `xxx` ไว้ก่อน — ผู้ใช้แก้เป็นเลข version จริง |
-| `{{ตัวย่อแผนก}}` | แสดง `___` ไว้ก่อน — ผู้ใช้ใส่ตัวย่อแผนก เช่น CSD |
+| `{{VERSION}}` | แสดง `x.x.x` ไว้ก่อน — ผู้ใช้แก้เป็นเลข version จริง |
 
-พร้อมปุ่ม **Copy** (format ติดไปใน Outlook/Gmail ได้เลย) ให้เป็นการก๊อปปี้ HTMl และ รูปแบบออกมา สำหรับการวางบน email
-**อย่าลืม**เอาข้อความยาว ๆ มาด้วยที่ปรากฏอยู่ใน template
+พร้อมปุ่ม **Copy** — paste ลง Outlook แล้ว render เป็น email จริง ไม่ใช่ HTML code
+
+> Copy ใช้ `ClipboardItem` กับ `text/html`:
+> ```js
+> const blob = new Blob([htmlContent], { type: "text/html" });
+> navigator.clipboard.write([new ClipboardItem({ "text/html": blob })]);
+> ```
 
 ---
 
 ## PHASE 5 — Post Comment บน Jira
 
-> เฉพาะ ticket ที่ไม่มีการคอมเมนต์ว่า "Promote Notification Complet"
+> รันเมื่อผู้ใช้กด **Complete Process** button เท่านั้น — ห้าม post อัตโนมัติ
+> เฉพาะ ticket ที่ยังไม่มี comment "Promote Notification Complete"
 
-1. แสดงรายชื่อ ticket ที่จะ post comment ก่อน:
+1. แสดงรายชื่อ ticket ที่จะ post comment:
    ```
    จะ comment "Promote Notification Complete" บน ticket ต่อไปนี้:
-   - CSD-XXXX: {ชื่อ Epic}
-   - CSD-YYYY: {ชื่อ Epic}
+   - {key1}: {ชื่อ Epic}
+   - {key2}: {ชื่อ Epic}
    ```
 2. → post comment `"Promote Notification Complete"` บนแต่ละ ticket
 3. แสดง checklist หลัง post:
@@ -400,6 +349,6 @@ render จาก `Promote_Template_Email.html` โดยแทน placeholder:
 
 - **Recipients** รวมจากทุก Epic ใน window เสมอ ไม่ใช่แค่ UNNOTIFIED
 - **exclude_recipients** ต้องลบออกก่อน render ทุกครั้ง
-- **Phase 5** ต้อง confirm ก่อน post เสมอ ห้าม post อัตโนมัติ
+- **Phase 5** trigger เฉพาะเมื่อผู้ใช้กด Complete Process button — ห้าม post อัตโนมัติ
 - **Setup** รันแค่ครั้งเดียว ตรวจจากค่าจริงในไฟล์ว่าช่องบังคับครบหรือยัง ไม่ใช้ flag แยกต่างหาก
-- **VERSION** ใส่ default `xxx` เสมอ — ผู้ใช้แก้เองก่อน forward จริง
+- **VERSION** ใส่ default `x.x.x` เสมอ — ผู้ใช้แก้เองก่อน forward จริง
