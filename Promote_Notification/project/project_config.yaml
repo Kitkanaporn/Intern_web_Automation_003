@@ -1,6 +1,6 @@
 jira:
-  cloud_id:    "6732a23f-023f-4a4c-aa5c-ccfee2562f20" #importance
-  base_url:    "https://setth.atlassian.net" #importance
+  cloud_id:    "" #importance
+  base_url:    "" #importance
   project_key: "CSD" #importance
   
   fields :
