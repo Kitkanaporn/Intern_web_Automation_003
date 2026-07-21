@@ -48,7 +48,8 @@
 ```
 📁 08_Test_UAT_DOCKER_AUTOMATION/
 ├── README.md                        ← คู่มือหลัก (ไฟล์นี้)
-├── 📁 UAT-Notification/             ← workflow แจ้ง UAT
+├── 📁 UAT-Notification/             ← workflow แจ้ง UAT (Phase 0–5)
+│   ├── README.md                    ← คู่มือเฉพาะ UAT Notification
 │   ├── SKILL.md
 │   ├── PROMPT.txt
 │   ├── shared_config.yaml
@@ -59,7 +60,8 @@
 │   │   └── SETUP.md
 │   └── 📁 project/
 │       └── project_config.yaml
-├── 📁 Promote_Notification/         ← workflow แจ้ง Promote
+├── 📁 Promote_Notification/         ← workflow แจ้ง Promote (Phase 0–6)
+│   ├── README.md                    ← คู่มือเฉพาะ Promote Notification
 │   ├── SKILL.md
 │   ├── PROMPT.txt
 │   ├── shared_config.yaml
@@ -96,48 +98,7 @@
 
 #### 2. สร้าง Scheduled UAT Notification
 
-เข้าไปในโปรเจคที่สร้างไว้ จากนั้นใส่ Prompt นี้ในช่องข้อความ
-
-> บริเวณ `xxx` ที่ส่วนหัวนั้นเป็นส่วนสำหรับใส่เวลาที่ต้องการให้ดำเนินงาน ในรูปแบบ `HH:MM`
-
-```
-/schedule   xxx
-
-You are executing the UAT Notification Workflow for the CSD Jira project. Run fully automatically — no confirmation, no questions, no pauses at any step.
-
-WORKSPACE: All files are in the UAT-Notification/ folder.
-- SKILL.md — core logic (Phase 0–5)
-- shared_config.yaml — global email config
-- project/project_config.yaml — Jira project config
-- Map_User_Email.xlsx — user-to-email mapping (sheet: map)
-- UAT_Template_Email.html — email HTML template
-
-EXECUTION: Read SKILL.md then execute Phase 0–5 exactly as defined. Do not deviate.
-
-PHASE 0 (mandatory before anything else):
-- Read shared_config.yaml + project/project_config.yaml
-- Jira fields empty → auto-detect from Jira API, write to config, continue
-- email.sender_email / sender_name / sender_phone empty → DO NOT STOP, DO NOT ASK, continue immediately with placeholders [ชื่อผู้ส่ง] / [เบอร์โทร] / [sender@set.or.th] in output
-- RULE: Empty sender fields are NEVER a reason to stop or ask. Always proceed to Phase 1.
-
-OUTPUT: Screen only. Do not create files.
-- Notifications needed → show 2 cards (Subject + Email body with 3 separate Copy buttons: To, CC, HTML body)
-- No notifications needed → show: "✅ วันนี้ไม่มี UAT ต้องแจ้ง — ticket ทั้งหมดได้รับการแจ้งเตือนแล้ว ({today})"
-
-TICKET SKIP RULE — apply per ticket before Phase 2 (CRITICAL, no exceptions):
-Skip a ticket ONLY when BOTH conditions are true:
-  (1) ticket has a comment whose body contains the jira_comment.text value, AND
-  (2) DATE(that comment's created) < DATE(today)   ← strictly before today
-
-All other cases → include the ticket in output:
-  • No matching comment exists → INCLUDE
-  • Matching comment exists but DATE(created) = DATE(today) → INCLUDE  (same-day rerun)
-
-"A comment was posted today" is NOT a reason to skip. Only a comment from a previous day qualifies as skip.
-If ≥1 ticket is included → run Phase 2 and Phase 3. Do not stop early.
-
-POST COMMENT (Phase 4 only): For each included ticket — call addCommentToJiraIssue ONLY IF no matching comment with DATE(created) = DATE(today) exists. If already commented today → skip silently, continue.
-```
+เข้าไปในโปรเจคที่สร้างไว้ จากนั้นพิมพ์ `/schedule` ตามด้วยเวลาที่ต้องการให้ดำเนินงาน (รูปแบบ `HH:MM`) แล้วแปะเนื้อหาจากไฟล์ `UAT-Notification/PROMPT.txt` ต่อท้ายในช่องข้อความ
 
 จากนั้นระบบจะทำการสร้างงาน schedule ขึ้นมา
 
@@ -162,76 +123,7 @@ POST COMMENT (Phase 4 only): For each included ticket — call addCommentToJiraI
 
 #### 2. สร้าง Scheduled Promote Notification
 
-เข้าไปในโปรเจคที่สร้างไว้ จากนั้นใส่ Prompt นี้ในช่องข้อความ
-
-> บริเวณ `xxx` ที่ส่วนหัวนั้นเป็นส่วนสำหรับใส่เวลาที่ต้องการให้ดำเนินงาน ในรูปแบบ `HH:MM`
-
-```
-/schedule   xxx
-
-# Promote Notification Workflow
-
-## Files to Use
-
-Use only the following files:
-
-* `instructions/AGENT.md` — overview and project instructions
-* `SKILL.md` — first-time setup logic and operation phases from Phase 0 to Phase 6
-* `shared_config.yaml` — global email and schedule configuration
-* `project/project_config.yaml` — Jira project configuration
-* `Map_User_Email.xlsx` — user and email mapping file, using the `map` sheet
-* `Promote_Template_Email.html` — HTML email template
-
-## Steps
-
-1. Read `instructions/AGENT.md` and `SKILL.md` to load the workflow logic.
-2. Read `shared_config.yaml` and `project/project_config.yaml` to get all configuration values.
-   2.1. If any field tagged `#importance` is empty, run Phase Setup before proceeding.
-3. Connect to Jira and fetch all Epic issues from the configured project where today is within the Promote notification window:
-   `Promote Date - 3 days <= today < Promote Date`
-   Only include Epic issues that have not been notified yet. An Epic is considered notified if it already contains the Jira comment:
-   `"Promote Notification Complete"`
-4. Cross-reference each Epic with `Map_User_Email.xlsx` to find the email addresses of the service units referenced by the Jira service fields.
-5. Execute Phase 0–6 as defined in `SKILL.md`.
-6. Run the workflow fully automatically after the initial setup is completed. User input is required only during the initial setup when required configuration values are missing.
-
-## Output Rules
-
-1. Display the result on screen only. Do not generate output files. Do not make artifact too illustate result in screen cowork only.
-2. Do not ask for confirmation during the workflow execution, except for the initial setup step when required configuration values are missing.
-
-## If Promote Notifications Are Needed Today
-If Promote Notifications are needed for more than one Promote Date, separate the email drafts by Promote Date.
-
-Example:
-* 22/06 has 2 Epics
-* 23/06 has 3 Epics
-
-The system must create 2 separate sets of email draft cards, one set for each Promote Date.
-Each set must display 4 cards:
-
-1. Subject
-   * Shows subject name and copy button
-2. Recipients Card
-   * Shows the email addresses of the responsible service units
-   * Includes a Copy button
-   * The box color should be green
-3. CC units
-   * Shows the email addresses in file `shared_config` in `cc_email` field
-   * Includes a Copy button
-4. Full Email Body Card
-   * Shows the full rendered HTML email body from `Promote_Template_Email.html`
-   * Includes a Copy button
-   * The Copy button must copy the full rendered HTML content, including the email template formatting, not plain text only
-
-## If No Promote Notifications Are Needed Today
-Display this message:
-`วันนี้ไม่มีรายการที่ต้องส่ง Promote Notification`
-
-## After Processing
-After displaying the result, show a summary section with a `Complete Process` button.
-When the user clicks `Complete Process`, post the Jira comment: `"Promote Notification Complete"` on every ticket that was included in the notification
-```
+เข้าไปในโปรเจคที่สร้างไว้ จากนั้นพิมพ์ `/schedule` ตามด้วยเวลาที่ต้องการให้ดำเนินงาน (รูปแบบ `HH:MM`) แล้วแปะเนื้อหาจากไฟล์ `Promote_Notification/PROMPT.txt` ต่อท้ายในช่องข้อความ
 
 จากนั้นระบบจะทำการสร้างงาน schedule ขึ้นมา
 
